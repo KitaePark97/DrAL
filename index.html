@@ -450,15 +450,14 @@ const FIREBASE_CONFIG = {
   </div>
   <div class="admin-bar" id="rAdminBar">
     <span>🟢 Admin Mode — 채용 공고 추가/편집/삭제</span>
-    <button class="add-btn" onclick="openRecForm()">+ Add Posting</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="add-btn" style="background:#0369a1" onclick="openRecTypeManager()">⚙ Manage Types</button>
+      <button class="add-btn" onclick="openRecForm()">+ Add Posting</button>
+    </div>
   </div>
-  <div class="fbar">
+  <div class="fbar" id="recFilterBar">
     <input type="text" id="rs" placeholder="Search positions…" oninput="rRec()">
-    <button class="fb on" onclick="rf('all',this)">All</button>
-    <button class="fb" onclick="rf('PhD Position',this)">PhD</button>
-    <button class="fb" onclick="rf('Postdoc',this)">Postdoc</button>
-    <button class="fb" onclick="rf('RA',this)">RA</button>
-    <button class="fb" onclick="rf('Undergraduate',this)">Undergraduate</button>
+    <button class="fb on" data-fixed onclick="rf('all',this)">All</button>
     <button class="show-closed-toggle" id="showClosedBtn" onclick="toggleShowClosed()">📂 Show Closed</button>
   </div>
   <div class="rgrid" id="rGrid"></div>
@@ -582,6 +581,14 @@ const FIREBASE_CONFIG = {
       <div class="fg"><label>Status</label><select id="pfStatus"><option>Active</option><option>Completed</option><option>Paused</option></select></div>
     </div>
     <div class="fg"><label>Link URL</label><input id="pfDrive" type="url" placeholder="https://…"></div>
+    <div class="fg"><label>Photo / Cover Image</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="pfPhoto" type="url" placeholder="https://… (image URL)">
+        <label style="text-transform:none;letter-spacing:0;font-size:.78rem;cursor:pointer;background:var(--bg);border:1px solid var(--border);padding:8px 12px;border-radius:8px;white-space:nowrap">
+          📁 Upload<input type="file" accept="image/*" onchange="handleProjPhotoUpload(this)" style="display:none">
+        </label>
+      </div>
+    </div>
     <div class="fg" style="display:flex;align-items:center;gap:10px">
       <input type="checkbox" id="pfRec" style="width:18px;height:18px">
       <label for="pfRec" style="text-transform:none;letter-spacing:0;font-size:.88rem;cursor:pointer">Currently recruiting</label>
@@ -606,7 +613,7 @@ const FIREBASE_CONFIG = {
     <input type="hidden" id="rfId">
     <div class="fg"><label>Title *</label><input id="rfTitle" type="text"></div>
     <div class="fr">
-      <div class="fg"><label>Type</label><select id="rfType"><option>PhD Position</option><option>Postdoc</option><option>RA</option><option>Undergraduate</option></select></div>
+      <div class="fg"><label>Type</label><select id="rfType"></select></div>
       <div class="fg"><label>Project</label><select id="rfProject"></select></div>
     </div>
     <div class="fg"><label>Description *</label><textarea id="rfDesc"></textarea></div>
@@ -617,6 +624,14 @@ const FIREBASE_CONFIG = {
     <div class="fr">
       <div class="fg"><label>Contact Email *</label><input id="rfEmail" type="email"></div>
       <div class="fg"><label>Status</label><select id="rfStatus"><option>Open</option><option>Closed</option><option>Filled</option></select></div>
+    </div>
+    <div class="fg"><label>Photo / Cover Image</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="rfPhoto" type="url" placeholder="https://… (image URL)">
+        <label style="text-transform:none;letter-spacing:0;font-size:.78rem;cursor:pointer;background:var(--bg);border:1px solid var(--border);padding:8px 12px;border-radius:8px;white-space:nowrap">
+          📁 Upload<input type="file" accept="image/*" onchange="handleRecPhotoUpload(this)" style="display:none">
+        </label>
+      </div>
     </div>
     <div class="fg"><label>Link URL <span style="font-weight:400;color:var(--muted)">(optional — application page, lab site, etc.)</span></label><input id="rfLink" type="url" placeholder="https://…"></div>
     <div class="fg" style="display:flex;align-items:center;gap:10px">
@@ -708,18 +723,75 @@ const FIREBASE_CONFIG = {
 
 <!-- Hero Background Picker -->
 <div class="overlay" id="bgPickerModal" onclick="if(event.target===this)closeModal('bgPickerModal')">
-  <div class="modal wide">
+  <div class="modal wide" style="max-width:680px">
     <button class="modal-x" onclick="closeModal('bgPickerModal')">×</button>
-    <h3>Choose Hero Background</h3>
-    <p style="font-size:.83rem;color:var(--muted);margin-bottom:18px">Select a preset background or enter a custom image URL.</p>
-    <div id="bgPresetGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px"></div>
-    <div class="fg"><label>Custom Image URL</label>
-      <div style="display:flex;gap:8px">
-        <input id="bgCustomUrl" type="url" placeholder="https://… (direct image URL)">
-        <button class="add-btn" onclick="applyCustomBg()">Apply</button>
+    <h3>Hero Background Settings</h3>
+
+    <!-- Mode tabs -->
+    <div style="display:flex;gap:0;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:22px">
+      <button id="bgTab-slideshow" onclick="setBgTab('slideshow')" style="flex:1;padding:9px;border:none;background:var(--green);color:#fff;font-size:.83rem;font-family:inherit;cursor:pointer">🎞 Slideshow</button>
+      <button id="bgTab-color"     onclick="setBgTab('color')"     style="flex:1;padding:9px;border:none;background:var(--white);color:var(--text);font-size:.83rem;font-family:inherit;cursor:pointer">🎨 Solid Color</button>
+    </div>
+
+    <!-- Slideshow panel -->
+    <div id="bgPanel-slideshow">
+      <p style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Active photos in slideshow. Click × to remove. Add more below.</p>
+      <div id="bgPresetGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px"></div>
+      <div class="fg"><label>Add via Image URL</label>
+        <div style="display:flex;gap:8px">
+          <input id="bgCustomUrl" type="url" placeholder="https://… (direct image URL)">
+          <button class="add-btn" onclick="applyCustomBg()">+ Add</button>
+        </div>
+      </div>
+      <div class="fg"><label>Upload Image</label>
+        <label style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;background:var(--bg);border:1.5px solid var(--border);padding:9px 16px;border-radius:8px;font-size:.85rem">
+          📁 Choose file…
+          <input type="file" accept="image/*" onchange="uploadBgImage(this)" style="display:none">
+        </label>
+        <span id="bgUploadStatus" style="font-size:.78rem;color:var(--muted);margin-left:8px"></span>
       </div>
     </div>
+
+    <!-- Solid color panel -->
+    <div id="bgPanel-color" style="display:none">
+      <p style="font-size:.82rem;color:var(--muted);margin-bottom:14px">Choose a background color. The overlay will still be applied on top.</p>
+      <div class="fg"><label>Background Color</label>
+        <div style="display:flex;gap:10px;align-items:center">
+          <input type="color" id="bgSolidColor" value="#2d4a3e" style="width:50px;height:38px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;padding:2px">
+          <input type="text"  id="bgSolidHex"   value="#2d4a3e" placeholder="#000000" style="width:110px;padding:9px 13px;border:1.5px solid var(--border);border-radius:8px;font-family:monospace;font-size:.9rem;outline:none" oninput="syncColorFromHex()">
+          <button class="add-btn" onclick="applyBgColor()">Apply Color</button>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px" id="colorSwatches"></div>
+      </div>
+    </div>
+
+    <!-- Text color (shared) -->
+    <div class="fg" style="margin-top:4px;padding-top:16px;border-top:1px solid var(--border)">
+      <label>Hero Text Color</label>
+      <div style="display:flex;gap:10px;align-items:center">
+        <input type="color" id="bgTextColor" value="#ffffff" style="width:50px;height:38px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;padding:2px">
+        <input type="text"  id="bgTextHex"   value="#ffffff" placeholder="#ffffff" style="width:110px;padding:9px 13px;border:1.5px solid var(--border);border-radius:8px;font-family:monospace;font-size:.9rem;outline:none" oninput="syncTextColorFromHex()">
+        <button class="add-btn" style="background:#555" onclick="applyTextColor()">Apply</button>
+        <button onclick="resetTextColor()" style="background:none;border:1px solid var(--border);padding:8px 12px;border-radius:8px;font-size:.78rem;cursor:pointer;color:var(--muted)">Reset White</button>
+      </div>
+    </div>
+
     <div class="factions"><button class="btn-cancel" onclick="closeModal('bgPickerModal')">Done</button></div>
+  </div>
+</div>
+
+<!-- Recruiting Type Manager -->
+<div class="overlay" id="recTypeModal" onclick="if(event.target===this)closeModal('recTypeModal')">
+  <div class="modal" style="max-width:420px">
+    <button class="modal-x" onclick="closeModal('recTypeModal')">×</button>
+    <h3>Manage Recruiting Types</h3>
+    <p style="font-size:.83rem;color:var(--muted);margin-bottom:18px">Types appear as filter buttons on the Recruiting page.</p>
+    <div id="recTypeList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px"></div>
+    <div style="display:flex;gap:8px">
+      <input id="newRecTypeInput" type="text" placeholder="New type name…" style="flex:1;padding:9px 13px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.88rem;outline:none" onkeydown="if(event.key==='Enter')addRecType()">
+      <button class="add-btn" onclick="addRecType()">+ Add</button>
+    </div>
+    <div class="factions"><button class="btn-cancel" onclick="closeModal('recTypeModal')">Done</button></div>
   </div>
 </div>
 
@@ -901,7 +973,7 @@ function goto(name, btn) {
   if(btn) btn.classList.add('on');
   if(name==='about')    renderAbout();
   if(name==='projects') rProjects();
-  if(name==='recruiting') rRec();
+  if(name==='recruiting'){ initRecTypeFilters(); rRec(); }
   if(name==='news')     rNews();
 }
 
@@ -1079,11 +1151,10 @@ function openRoleManager(){
 }
 function renderRoleList(){
   const roles=D.memberRoles||DEFAULT_MEMBER_ROLES;
-  const defaults=new Set(DEFAULT_MEMBER_ROLES);
   document.getElementById('roleList').innerHTML=roles.map((r,i)=>`
     <div style="display:flex;align-items:center;gap:6px;background:var(--green-pale);color:var(--green);padding:5px 11px;border-radius:20px;font-size:.79rem;font-weight:500">
       ${r}
-      ${!defaults.has(r)?`<button onclick="removeRole(${i})" style="background:none;border:none;color:inherit;cursor:pointer;font-size:.85rem;padding:0">×</button>`:'<span style="opacity:.35;font-size:.7rem">•</span>'}
+      <button onclick="removeRole(${i})" style="background:none;border:none;color:inherit;cursor:pointer;font-size:.9rem;padding:0;line-height:1">×</button>
     </div>`).join('');
 }
 async function addRole(){
@@ -1273,7 +1344,10 @@ function rProjects(){
       <div class="pc-head">
         <div class="tags">${tags}</div>
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-          <div class="pc-title">${p.title}</div>
+          <div style="flex:1">
+            ${p.photoUrl?`<img src="${p.photoUrl}" style="width:100%;height:80px;object-fit:cover;border-radius:7px;margin-bottom:9px;border:1px solid var(--border)" alt="" loading="lazy">`:''}
+            <div class="pc-title">${p.title}</div>
+          </div>
           ${isAdmin?`<div style="display:flex;gap:4px;flex-shrink:0"><button class="ica ica-edit" onclick="openProjForm(${p.id})">✏️</button><button class="ica ica-del" onclick="confirmDelete('project',${p.id})">🗑</button></div>`:''}
         </div>
         <p class="pc-desc">${p.desc}</p>
@@ -1314,9 +1388,10 @@ function openProjForm(id=null){
     document.getElementById('pfTags').value=p.tags.join(', ');
     document.getElementById('pfStatus').value=p.status;
     document.getElementById('pfDrive').value=p.driveUrl||'';
+    document.getElementById('pfPhoto').value=p.photoUrl||'';
     document.getElementById('pfRec').checked=p.recruiting;
   } else {
-    ['pfId','pfTitle','pfAbbr','pfDesc','pfPi','pfFunding','pfTags','pfDrive'].forEach(f=>document.getElementById(f).value='');
+    ['pfId','pfTitle','pfAbbr','pfDesc','pfPi','pfFunding','pfTags','pfDrive','pfPhoto'].forEach(f=>document.getElementById(f).value='');
     document.getElementById('pfStatus').value='Active';
     document.getElementById('pfRec').checked=false;
   }
@@ -1359,6 +1434,7 @@ async function saveProject(){
     funding:document.getElementById('pfFunding').value.trim()||null,
     status:document.getElementById('pfStatus').value,
     driveUrl:document.getElementById('pfDrive').value.trim()||null,
+    photoUrl:document.getElementById('pfPhoto').value.trim()||null,
     recruiting:document.getElementById('pfRec').checked,
     memberIds:[..._pickedMemberIds],
   };
@@ -1406,9 +1482,84 @@ async function removeTag(idx){
 }
 
 /* ══════════════════════════════════════════════════
+   RECRUITING TYPE MANAGER
+══════════════════════════════════════════════════ */
+const DEFAULT_REC_TYPES = ['PhD Position','Postdoc','RA','Undergraduate'];
+
+function getRecTypes(){ return (D&&D.recTypes&&D.recTypes.length)?D.recTypes:[...DEFAULT_REC_TYPES]; }
+
+function openRecTypeManager(){
+  if(!D.recTypes) D.recTypes=[...DEFAULT_REC_TYPES];
+  renderRecTypeList();
+  openModal('recTypeModal');
+}
+function renderRecTypeList(){
+  const types=D.recTypes||DEFAULT_REC_TYPES;
+  document.getElementById('recTypeList').innerHTML=types.map((t,i)=>`
+    <div style="display:flex;align-items:center;gap:6px;background:var(--green-pale);color:var(--green);padding:5px 11px;border-radius:20px;font-size:.79rem;font-weight:500">
+      ${t}<button onclick="removeRecType(${i})" style="background:none;border:none;color:inherit;cursor:pointer;font-size:.9rem;padding:0;line-height:1">×</button>
+    </div>`).join('');
+}
+async function addRecType(){
+  const v=document.getElementById('newRecTypeInput').value.trim(); if(!v) return;
+  if(!D.recTypes) D.recTypes=[...DEFAULT_REC_TYPES];
+  if(D.recTypes.includes(v)){alert('Type already exists.');return}
+  D.recTypes.push(v);
+  document.getElementById('newRecTypeInput').value='';
+  renderRecTypeList();
+  await saveToFirebase();
+  initRecTypeFilters();
+  populateRfType();
+}
+async function removeRecType(idx){
+  if(!D.recTypes) return;
+  D.recTypes.splice(idx,1);
+  renderRecTypeList();
+  await saveToFirebase();
+  initRecTypeFilters();
+  populateRfType();
+}
+function initRecTypeFilters(){
+  const types=getRecTypes();
+  const bar=document.getElementById('recFilterBar');
+  if(!bar) return;
+  // Remove old type buttons (keep search input, All, ShowClosed)
+  Array.from(bar.querySelectorAll('.fb:not([data-fixed])')).forEach(b=>b.remove());
+  // Insert type buttons before the Show Closed toggle
+  const showClosedBtn=document.getElementById('showClosedBtn');
+  types.forEach(t=>{
+    const b=document.createElement('button');
+    b.className='fb'+(rFilter===t?' on':'');
+    b.textContent=t;
+    b.onclick=()=>rf(t,b);
+    bar.insertBefore(b, showClosedBtn);
+  });
+}
+function populateRfType(){
+  const sel=document.getElementById('rfType'); if(!sel) return;
+  const types=getRecTypes();
+  const cur=sel.value;
+  sel.innerHTML=types.map(t=>`<option${t===cur?' selected':''}>${t}</option>`).join('');
+}
+
+/* ── Photo upload helpers (proj/rec) ── */
+function handleProjPhotoUpload(input){
+  const f=input.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=e=>{ document.getElementById('pfPhoto').value=e.target.result; };
+  r.readAsDataURL(f);
+}
+function handleRecPhotoUpload(input){
+  const f=input.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=e=>{ document.getElementById('rfPhoto').value=e.target.result; };
+  r.readAsDataURL(f);
+}
+
+/* ══════════════════════════════════════════════════
    RECRUITING
 ══════════════════════════════════════════════════ */
-function rf(f,btn){rFilter=f;document.querySelectorAll('#page-recruiting .fb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');rRec()}
+function rf(f,btn){rFilter=f;document.querySelectorAll('#page-recruiting .fbar .fb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');rRec()}
 
 function toggleShowClosed(){
   showClosedRec=!showClosedRec;
@@ -1435,7 +1586,15 @@ function rRec(){
     <div class="rc ${r.urgent&&!isClosed?'urg':''} ${isClosed?'closed-pos':''}">
       ${isAdmin?`<div style="position:absolute;top:14px;right:14px;display:flex;gap:5px"><button class="ica ica-edit" onclick="openRecForm(${r.id})">✏️</button><button class="ica ica-del" onclick="confirmDelete('rec',${r.id})">🗑</button></div>`:''}
       <div class="rc-top">
-        <div><div class="rc-title">${r.title}</div><div class="rc-proj">${proj?proj.title:''}</div></div>
+        <div style="flex:1">
+          <div style="display:flex;gap:13px;align-items:flex-start">
+            ${r.photoUrl?`<img src="${r.photoUrl}" style="width:72px;height:60px;object-fit:cover;border-radius:7px;flex-shrink:0;border:1px solid var(--border)" alt="">`:''}
+            <div>
+              <div class="rc-title">${r.title}</div>
+              <div class="rc-proj">${proj?proj.title:''}</div>
+            </div>
+          </div>
+        </div>
         <div class="rc-badges">
           <span class="rbg rbg-t">${r.type}</span>
           ${r.urgent&&!isClosed?'<span class="rbg rbg-u">Urgent</span>':''}
@@ -1463,6 +1622,7 @@ function openRecForm(id=null){
     `<option value="">— None —</option>`+
     D.projects.map(p=>`<option value="${p.id}">${p.title}</option>`).join('');
   document.getElementById('rFormTitle').textContent=id?'Edit Posting':'Add Posting';
+  populateRfType();
   if(id){
     const r=D.recruiting.find(x=>x.id===id);
     document.getElementById('rfId').value=r.id;
@@ -1476,8 +1636,9 @@ function openRecForm(id=null){
     document.getElementById('rfStatus').value=r.status;
     document.getElementById('rfUrgent').checked=r.urgent;
     document.getElementById('rfLink').value=r.link||'';
+    document.getElementById('rfPhoto').value=r.photoUrl||'';
   } else {
-    ['rfId','rfTitle','rfDesc','rfDeadline','rfFunding','rfEmail','rfLink'].forEach(f=>document.getElementById(f).value='');
+    ['rfId','rfTitle','rfDesc','rfDeadline','rfFunding','rfEmail','rfLink','rfPhoto'].forEach(f=>document.getElementById(f).value='');
     document.getElementById('rfType').value='PhD Position';
     document.getElementById('rfStatus').value='Open';
     document.getElementById('rfUrgent').checked=false;
@@ -1503,6 +1664,7 @@ async function saveRec(){
     status:document.getElementById('rfStatus').value,
     urgent:document.getElementById('rfUrgent').checked,
     link:document.getElementById('rfLink').value.trim()||null,
+    photoUrl:document.getElementById('rfPhoto').value.trim()||null,
   };
   if(id){const i=D.recruiting.findIndex(r=>r.id===id);D.recruiting[i]=obj;}
   else{D.recruiting.unshift(obj);}
@@ -1624,92 +1786,229 @@ function renderAll(){
   if(!D) return;
   if(!D.projectTags) D.projectTags=window.SEED_DATA.projectTags||["Health","Mobility","Equity","Urban Design","Aging"];
   if(!D.memberRoles) D.memberRoles=[...DEFAULT_MEMBER_ROLES];
+  if(!D.recTypes) D.recTypes=[...DEFAULT_REC_TYPES];
+  // Apply saved text color
+  const savedColor=(D.heroBgSettings&&D.heroBgSettings.textColor)||'#ffffff';
+  applyHeroTextColor(savedColor);
   renderStats(); rMembers();
   const active=document.querySelector('.page.on')?.id?.replace('page-','');
   if(active==='projects'){ initTagFilters(); rProjects(); }
-  if(active==='recruiting') rRec();
+  if(active==='recruiting'){ initRecTypeFilters(); rRec(); }
   if(active==='news') rNews();
   if(active==='about') renderAbout();
 }
 
 /* ══════════════════════════════════════════════════
-   HERO BACKGROUND SLIDESHOW
+   HERO BACKGROUND SLIDESHOW + SETTINGS
 ══════════════════════════════════════════════════ */
+function getHeroPresets(){
+  return (D && D.heroBgPresets && D.heroBgPresets.length) ? D.heroBgPresets : HERO_PRESETS;
+}
+function getHeroSettings(){
+  return (D && D.heroBgSettings) ? D.heroBgSettings : {mode:'slideshow', color:'#2d4a3e', textColor:'#ffffff'};
+}
+
 function initHeroBg(){
   const bg = document.getElementById('heroBg');
   const dotsEl = document.getElementById('heroDots');
   if(!bg || !dotsEl) return;
+  const settings = getHeroSettings();
 
-  // Build layers
+  clearInterval(heroBgTimer);
   bg.innerHTML = '';
   heroBgLayers = [];
-  const presets = (D && D.heroBgPresets) ? D.heroBgPresets : HERO_PRESETS;
+  dotsEl.innerHTML = '';
+
+  if(settings.mode === 'color'){
+    // Solid color mode
+    bg.style.background = settings.color||'#2d4a3e';
+    // Apply text color
+    applyHeroTextColor(settings.textColor||'#ffffff');
+    return;
+  }
+
+  // Slideshow mode
+  bg.style.background = '';
+  const presets = getHeroPresets();
   presets.forEach((p,i) => {
     const div = document.createElement('div');
     div.className = 'hero-bg-layer' + (i===0?' active':'');
-    div.style.backgroundImage = `url('${p.url}')`;
+    div.style.backgroundImage = "url('"+p.url+"')";
     bg.appendChild(div);
     heroBgLayers.push(div);
   });
-
-  // Build dots
   dotsEl.innerHTML = '';
   presets.forEach((_,i) => {
     const d = document.createElement('button');
     d.className = 'hero-bg-dot' + (i===0?' on':'');
+    d.setAttribute('aria-label','Background '+i);
     d.onclick = () => goBg(i);
     dotsEl.appendChild(d);
   });
-
   heroBgIndex = 0;
-  clearInterval(heroBgTimer);
-  heroBgTimer = setInterval(() => goBg((heroBgIndex+1) % heroBgLayers.length), 6000);
+  // Force first image visible
+  if(heroBgLayers[0]) heroBgLayers[0].classList.add('active');
+  heroBgTimer = setInterval(() => goBg((heroBgIndex+1) % Math.max(heroBgLayers.length,1)), 6000);
+  applyHeroTextColor(settings.textColor||'#ffffff');
 }
 
 function goBg(idx){
   if(!heroBgLayers.length) return;
-  heroBgLayers[heroBgIndex].classList.remove('active');
+  heroBgLayers[heroBgIndex]?.classList.remove('active');
   document.querySelectorAll('.hero-bg-dot')[heroBgIndex]?.classList.remove('on');
-  heroBgIndex = idx;
-  heroBgLayers[heroBgIndex].classList.add('active');
+  heroBgIndex = (idx + heroBgLayers.length) % heroBgLayers.length;
+  heroBgLayers[heroBgIndex]?.classList.add('active');
   document.querySelectorAll('.hero-bg-dot')[heroBgIndex]?.classList.add('on');
 }
 
+function applyHeroTextColor(hex){
+  const hero = document.getElementById('heroSection');
+  if(hero) hero.style.color = hex||'#ffffff';
+}
+
+let _currentBgTab = 'slideshow';
+function setBgTab(tab){
+  _currentBgTab = tab;
+  document.getElementById('bgPanel-slideshow').style.display = tab==='slideshow'?'block':'none';
+  document.getElementById('bgPanel-color').style.display     = tab==='color'?'block':'none';
+  document.getElementById('bgTab-slideshow').style.background = tab==='slideshow'?'var(--green)':'var(--white)';
+  document.getElementById('bgTab-slideshow').style.color      = tab==='slideshow'?'#fff':'var(--text)';
+  document.getElementById('bgTab-color').style.background     = tab==='color'?'var(--green)':'var(--white)';
+  document.getElementById('bgTab-color').style.color          = tab==='color'?'#fff':'var(--text)';
+}
+
 function openBgPicker(){
-  const presets = (D && D.heroBgPresets) ? D.heroBgPresets : HERO_PRESETS;
-  const grid = document.getElementById('bgPresetGrid');
-  grid.innerHTML = presets.map((p,i) => `
-    <div onclick="pickBg(${i})" style="cursor:pointer;border-radius:10px;overflow:hidden;border:2px solid ${i===heroBgIndex?'var(--gold)':'transparent'};position:relative;aspect-ratio:16/9">
-      <img src="${p.url}" style="width:100%;height:100%;object-fit:cover;display:block" loading="lazy">
-      <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.5);color:#fff;font-size:.68rem;padding:4px 7px">${p.label}</div>
-    </div>`).join('');
-  document.getElementById('bgCustomUrl').value='';
+  const settings = getHeroSettings();
+  const presets = getHeroPresets();
+  // Set tabs
+  setBgTab(settings.mode||'slideshow');
+  // Populate preset grid
+  renderBgPresetGrid();
+  // Set color inputs
+  document.getElementById('bgSolidColor').value = settings.color||'#2d4a3e';
+  document.getElementById('bgSolidHex').value   = settings.color||'#2d4a3e';
+  document.getElementById('bgTextColor').value  = settings.textColor||'#ffffff';
+  document.getElementById('bgTextHex').value    = settings.textColor||'#ffffff';
+  // Populate color swatches
+  const swatches=['#2d4a3e','#1a1a2e','#0f3460','#16213e','#1b4332','#3d2b1f','#4a1942','#2c2c54','#000000','#ffffff'];
+  document.getElementById('colorSwatches').innerHTML = swatches.map(s=>`
+    <div onclick="pickSwatch('${s}')" style="width:30px;height:30px;border-radius:50%;background:${s};cursor:pointer;border:2px solid ${s===settings.color?'var(--gold)':'transparent'}" title="${s}"></div>`).join('');
+  document.getElementById('bgCustomUrl').value = '';
+  document.getElementById('bgUploadStatus').textContent = '';
   openModal('bgPickerModal');
 }
 
+function renderBgPresetGrid(){
+  const presets = getHeroPresets();
+  document.getElementById('bgPresetGrid').innerHTML = presets.map((p,i) => `
+    <div style="position:relative;border-radius:9px;overflow:hidden;border:2px solid ${i===heroBgIndex&&_currentBgTab==='slideshow'?'var(--gold)':'#e0dbd2'};aspect-ratio:16/9">
+      <img src="${p.url}" style="width:100%;height:100%;object-fit:cover;display:block" loading="lazy" onclick="pickBg(${i})">
+      <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);color:#fff;font-size:.66rem;padding:3px 7px;display:flex;justify-content:space-between;align-items:center">
+        <span>${p.label}</span>
+        ${presets.length>1?`<button onclick="removeBgPreset(${i},event)" style="background:none;border:none;color:#fff;cursor:pointer;font-size:.85rem;padding:0;line-height:1">×</button>`:''}
+      </div>
+    </div>`).join('');
+}
+
 function pickBg(idx){
+  setBgTab('slideshow');
   goBg(idx);
   clearInterval(heroBgTimer);
-  heroBgTimer = setInterval(()=>goBg((heroBgIndex+1)%heroBgLayers.length),6000);
-  // Refresh border highlights
-  const presets = (D && D.heroBgPresets) ? D.heroBgPresets : HERO_PRESETS;
-  document.querySelectorAll('#bgPresetGrid > div').forEach((el,i)=>{
-    el.style.borderColor = i===idx?'var(--gold)':'transparent';
-  });
+  heroBgTimer = setInterval(()=>goBg((heroBgIndex+1)%Math.max(heroBgLayers.length,1)),6000);
+  renderBgPresetGrid();
+}
+
+async function removeBgPreset(idx, e){
+  e.stopPropagation();
+  if(!D.heroBgPresets) D.heroBgPresets = [...HERO_PRESETS];
+  if(D.heroBgPresets.length<=1){alert('최소 1개의 배경이 있어야 합니다.');return}
+  D.heroBgPresets.splice(idx,1);
+  if(heroBgIndex>=D.heroBgPresets.length) heroBgIndex=0;
+  await saveToFirebase();
+  initHeroBg();
+  renderBgPresetGrid();
 }
 
 async function applyCustomBg(){
   const url = document.getElementById('bgCustomUrl').value.trim();
   if(!url) return;
   if(!D.heroBgPresets) D.heroBgPresets = [...HERO_PRESETS];
-  // Check if already exists
   const existing = D.heroBgPresets.findIndex(p=>p.url===url);
   if(existing>=0){ pickBg(existing); return; }
   D.heroBgPresets.push({label:'Custom', url});
+  if(!D.heroBgSettings) D.heroBgSettings = {mode:'slideshow',color:'#2d4a3e',textColor:'#ffffff'};
+  D.heroBgSettings.mode = 'slideshow';
   await saveToFirebase();
   initHeroBg();
   goBg(D.heroBgPresets.length-1);
-  closeModal('bgPickerModal');
+  document.getElementById('bgCustomUrl').value = '';
+  renderBgPresetGrid();
+}
+
+async function uploadBgImage(input){
+  const file = input.files[0]; if(!file) return;
+  const status = document.getElementById('bgUploadStatus');
+  status.textContent = 'Reading…';
+  const reader = new FileReader();
+  reader.onload = async e => {
+    const dataUrl = e.target.result;
+    if(!D.heroBgPresets) D.heroBgPresets = [...HERO_PRESETS];
+    D.heroBgPresets.push({label: file.name.replace(/\.[^.]+$/,''), url: dataUrl});
+    if(!D.heroBgSettings) D.heroBgSettings = {mode:'slideshow',color:'#2d4a3e',textColor:'#ffffff'};
+    D.heroBgSettings.mode = 'slideshow';
+    status.textContent = '✓ Added';
+    await saveToFirebase();
+    initHeroBg();
+    goBg(D.heroBgPresets.length-1);
+    renderBgPresetGrid();
+    input.value='';
+  };
+  reader.readAsDataURL(file);
+}
+
+function pickSwatch(hex){
+  document.getElementById('bgSolidColor').value = hex;
+  document.getElementById('bgSolidHex').value   = hex;
+  document.querySelectorAll('#colorSwatches > div').forEach(el=>{
+    el.style.borderColor = el.title===hex?'var(--gold)':'transparent';
+  });
+}
+function syncColorFromHex(){
+  const v = document.getElementById('bgSolidHex').value.trim();
+  if(/^#[0-9a-fA-F]{6}$/.test(v)) document.getElementById('bgSolidColor').value = v;
+}
+function syncTextColorFromHex(){
+  const v = document.getElementById('bgTextHex').value.trim();
+  if(/^#[0-9a-fA-F]{6}$/.test(v)) document.getElementById('bgTextColor').value = v;
+}
+
+async function applyBgColor(){
+  const color = document.getElementById('bgSolidColor').value;
+  if(!D.heroBgSettings) D.heroBgSettings={mode:'color',color,textColor:'#ffffff'};
+  D.heroBgSettings.mode  = 'color';
+  D.heroBgSettings.color = color;
+  await saveToFirebase();
+  initHeroBg();
+  renderBgPresetGrid();
+  setBgTab('color');
+}
+
+async function applyTextColor(){
+  const color = document.getElementById('bgTextColor').value;
+  document.getElementById('bgTextHex').value = color;
+  if(!D.heroBgSettings) D.heroBgSettings={mode:'slideshow',color:'#2d4a3e',textColor:color};
+  D.heroBgSettings.textColor = color;
+  await saveToFirebase();
+  applyHeroTextColor(color);
+}
+
+async function resetTextColor(){
+  document.getElementById('bgTextColor').value = '#ffffff';
+  document.getElementById('bgTextHex').value   = '#ffffff';
+  if(!D.heroBgSettings) D.heroBgSettings={mode:'slideshow',color:'#2d4a3e',textColor:'#ffffff'};
+  D.heroBgSettings.textColor = '#ffffff';
+  await saveToFirebase();
+  applyHeroTextColor('#ffffff');
 }
 
 /* ══════════════════════════════════════════════════
@@ -1729,6 +2028,7 @@ async function init(){
     await loadFromFirebase();
     renderAll();
     initHeroBg();
+    initRecTypeFilters();
     startRealtimeListener(); // live updates for all visitors
   } finally {
     loadScreen.classList.add('hide');
