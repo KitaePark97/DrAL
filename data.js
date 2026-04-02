@@ -1,4 +1,3 @@
- (cd "$(git rev-parse --show-toplevel)" && git apply --3way <<'EOF' 
 diff --git a/data.js b/data.js
 index 1111b9f98963af241071ed570d78ad3e892307f8..69c4905d07a5f2b1186330bd14b772db23486040 100644
 --- a/data.js
@@ -63,6 +62,3 @@ index 1111b9f98963af241071ed570d78ad3e892307f8..69c4905d07a5f2b1186330bd14b772db
      { id:5,  abbr:"HASD",    title:"Healthy and Active School Design",                            tags:["Health","Equity"],                 status:"Active", recruiting:false, pi:"Xuemei Zhu",  funding:null,      memberIds:[2,10,18,24,26],    driveUrl:null, desc:"Examining how school building and campus design promotes or inhibits physical activity, active transportation, and healthy behaviors among K-12 students." },
      { id:6,  abbr:"iCAT",    title:"Intergenerational Communities Assessment Tool (iCAT)",        tags:["Equity","Urban Design","Aging"],   status:"Active", recruiting:false, pi:"Chanam Lee",  funding:null,      memberIds:[1,11,12,21,27],    driveUrl:null, desc:"Developing and validating a community assessment tool to measure how well neighborhoods support intergenerational interactions, social cohesion, and active aging." },
      { id:7,  abbr:"NbI-HCW", title:"Nature-based Interventions for Healthcare Workers",          tags:["Health"],                          status:"Active", recruiting:true,  pi:"Dongying Li", funding:null,      memberIds:[8,10,20,25,29],    driveUrl:null, desc:"Studying how exposure to nature-based environments affects stress recovery, mental health, and well-being of healthcare workers." },
- 
-EOF
-)
