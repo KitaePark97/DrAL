@@ -118,6 +118,7 @@ nav{
 .rbadge{display:inline-block;margin-top:9px;padding:2px 11px;border-radius:10px;font-size:.66rem;font-weight:500}
 .rb-f{background:var(--gold-pale);color:var(--gold)}
 .rb-p{background:var(--green-pale);color:var(--green)}
+.rb-ms{background:#fce7f3;color:#9d174d}
 .rb-d{background:var(--blue-pale);color:#1e40af}
 .rb-r{background:var(--purple-pale);color:#5b21b6}
 .slink{display:inline-flex;align-items:center;gap:4px;font-size:.68rem;color:#2563eb;margin-top:6px}
@@ -150,7 +151,9 @@ nav{
 .pc-foot{border-top:1px solid var(--border);padding:13px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
 .sdot{display:flex;align-items:center;gap:7px;font-size:.75rem;color:var(--muted)}
 .dot{width:7px;height:7px;border-radius:50%}
-.dot-a{background:#16a34a}.dot-r{background:var(--gold)}
+.dot-a{background:#16a34a}.dot-r{background:var(--gold)}.dot-c{background:#6b7280}
+.mc-photo{width:100%;height:112px;object-fit:cover;display:block}
+.mc-dept{font-size:.66rem;color:var(--muted);margin-top:2px;background:var(--bg);border-radius:4px;display:inline-block;padding:1px 7px}
 .drive-btn{display:flex;align-items:center;gap:5px;font-size:.72rem;background:none;border:1px solid var(--border);border-radius:16px;padding:4px 13px;color:var(--muted);text-decoration:none;transition:all .2s}
 .drive-btn:hover:not(.na){border-color:#4285f4;color:#4285f4}
 .drive-btn.na{opacity:.35;pointer-events:none}
@@ -185,6 +188,17 @@ nav{
 .news-title{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:600;margin-bottom:10px}
 .news-body{font-size:.86rem;color:var(--muted);line-height:1.7}
 .news-author{font-size:.76rem;color:var(--muted);margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.news-img-wrap{border-radius:9px;overflow:hidden;margin-bottom:14px;max-height:240px}
+.news-img-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+.news-body.collapsed{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.news-read-more{background:none;border:none;color:var(--green-l);font-size:.79rem;padding:0;margin-top:6px;cursor:pointer;font-family:inherit}
+.news-read-more:hover{text-decoration:underline}
+.news-ext-link{display:inline-flex;align-items:center;gap:5px;font-size:.78rem;color:#2563eb;margin-top:12px;text-decoration:none}
+.news-ext-link:hover{text-decoration:underline}
+.rc.closed-pos{opacity:.65;border-left-color:#9ca3af}
+.rc-closed-badge{background:#f1f5f9;color:#6b7280;padding:2px 10px;border-radius:8px;font-size:.69rem;font-weight:500}
+.show-closed-toggle{display:flex;align-items:center;gap:7px;font-size:.79rem;color:var(--muted);cursor:pointer;background:none;border:1px solid var(--border);padding:6px 14px;border-radius:20px;transition:all .2s}
+.show-closed-toggle:hover,.show-closed-toggle.on{border-color:var(--green);color:var(--green)}
 
 /* ═══════════════════════════ ABOUT ═══════════════════════════ */
 .about-hero{background:var(--white);border-radius:16px;border:1px solid var(--border);padding:48px;margin-bottom:32px;position:relative}
@@ -202,6 +216,7 @@ nav{
 .about-contact p{opacity:.8;font-size:.88rem;margin-top:6px}
 .contact-link{background:rgba(255,255,255,.15);border:1.5px solid rgba(255,255,255,.3);color:#fff;padding:10px 22px;border-radius:8px;font-size:.85rem;transition:all .2s;display:inline-block}
 .contact-link:hover{background:rgba(255,255,255,.25)}
+.contact-links-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
 
 /* ═══════════════════════════ MODALS ═══════════════════════════ */
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center}
@@ -336,7 +351,13 @@ const FIREBASE_CONFIG = {
   <div class="about-cards" id="aboutCards"></div>
   <div class="about-contact">
     <div><h3>Get in Touch</h3><p>Interested in collaborating or joining the lab?</p></div>
-    <a id="contactLink" class="contact-link" href="#">✉ Contact Us</a>
+    <div>
+      <div class="contact-links-row">
+        <a id="contactLink" class="contact-link" href="#">✉ Contact Us</a>
+        <a id="linkedinLink" class="contact-link" href="https://www.linkedin.com/in/design-research-for-active-living-dral-lab-918614268/" target="_blank">in LinkedIn</a>
+      </div>
+      <button class="admin-only" id="editContactBtn" style="display:none;margin-top:10px;background:rgba(255,255,255,.15);border:1px dashed rgba(255,255,255,.5);color:#fff;padding:6px 14px;border-radius:8px;font-size:.76rem;cursor:pointer" onclick="openAboutEdit()">✏️ Edit Contact Info</button>
+    </div>
   </div>
 </div>
 
@@ -352,8 +373,10 @@ const FIREBASE_CONFIG = {
     <button class="fb on" onclick="mf('all',this)">All</button>
     <button class="fb" onclick="mf('Faculty',this)">Faculty</button>
     <button class="fb" onclick="mf('PhD Student',this)">PhD Students</button>
+    <button class="fb" onclick="mf('Master Student',this)">Master Students</button>
     <button class="fb" onclick="mf('Post Doc',this)">Post Docs</button>
     <button class="fb" onclick="mf('Researcher',this)">Researchers</button>
+    <button class="fb" onclick="mf('Former',this)">Former</button>
   </div>
   <div class="mgrid" id="mGrid"></div>
 </div>
@@ -363,16 +386,14 @@ const FIREBASE_CONFIG = {
   <div class="sh"><h2>Research Projects</h2><div class="sh-line"></div><p>Ongoing investigations across built environment, health equity, and active transportation.</p></div>
   <div class="admin-bar" id="pAdminBar">
     <span>🟢 Admin Mode — 프로젝트 편집, 팀원 관리, 새 프로젝트 추가</span>
-    <button class="add-btn" onclick="openProjForm()">+ Add Project</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="add-btn" style="background:#0369a1" onclick="openTagManager()">⚙ Manage Tags</button>
+      <button class="add-btn" onclick="openProjForm()">+ Add Project</button>
+    </div>
   </div>
-  <div class="fbar">
+  <div class="fbar" id="projectFilterBar">
     <input type="text" id="ps" placeholder="Search projects…" oninput="rProjects()">
     <button class="fb on" onclick="pf('all',this)">All</button>
-    <button class="fb" onclick="pf('Health',this)">Health</button>
-    <button class="fb" onclick="pf('Mobility',this)">Mobility</button>
-    <button class="fb" onclick="pf('Equity',this)">Equity</button>
-    <button class="fb" onclick="pf('Urban Design',this)">Urban Design</button>
-    <button class="fb" onclick="pf('Aging',this)">Aging</button>
   </div>
   <div class="pgrid" id="pGrid"></div>
 </div>
@@ -393,6 +414,7 @@ const FIREBASE_CONFIG = {
     <button class="fb" onclick="rf('Postdoc',this)">Postdoc</button>
     <button class="fb" onclick="rf('RA',this)">RA</button>
     <button class="fb" onclick="rf('Undergraduate',this)">Undergraduate</button>
+    <button class="show-closed-toggle" id="showClosedBtn" onclick="toggleShowClosed()">📂 Show Closed</button>
   </div>
   <div class="rgrid" id="rGrid"></div>
 </div>
@@ -412,6 +434,7 @@ const FIREBASE_CONFIG = {
 <footer>
   <strong>DrAL Lab</strong> · Design Research for Active Living · Texas A&M University<br>
   <span style="margin-top:5px;display:block">Department of Landscape Architecture & Urban Planning · College of Architecture</span>
+  <a href="https://www.linkedin.com/in/design-research-for-active-living-dral-lab-918614268/" target="_blank" style="color:rgba(255,255,255,.5);margin-top:8px;display:inline-block;font-size:.78rem">in LinkedIn</a>
 </footer>
 
 <!-- ═══ MODALS ═══ -->
@@ -458,13 +481,27 @@ const FIREBASE_CONFIG = {
     <div class="fr">
       <div class="fg"><label>Name *</label><input id="mfName" type="text" placeholder="Jane Doe"></div>
       <div class="fg"><label>Role *</label>
-        <select id="mfRole"><option>Faculty</option><option>PhD Student</option><option>Post Doc</option><option>Researcher</option><option>Visiting Scholar</option></select>
+        <select id="mfRole"><option>Faculty</option><option>PhD Student</option><option>Master Student</option><option>Post Doc</option><option>Researcher</option><option>Visiting Scholar</option></select>
       </div>
     </div>
-    <div class="fg"><label>Email *</label><input id="mfEmail" type="email" placeholder="janedoe@tamu.edu"></div>
+    <div class="fr">
+      <div class="fg"><label>Email *</label><input id="mfEmail" type="email" placeholder="janedoe@tamu.edu"></div>
+      <div class="fg"><label>Department</label>
+        <select id="mfDept"><option value="">— None —</option><option>LAUP</option><option>ARCH</option><option>HLTH</option><option>Other</option></select>
+      </div>
+    </div>
     <div class="fr">
       <div class="fg"><label>Advisor</label><input id="mfAdvisor" type="text" placeholder="Chanam Lee"></div>
       <div class="fg"><label>Status</label><select id="mfStatus"><option>Active</option><option>Former</option><option>Visiting</option></select></div>
+    </div>
+    <div class="fg"><label>Photo URL</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="mfPhotoUrl" type="url" placeholder="https://… (or leave blank for initials)">
+        <label style="text-transform:none;letter-spacing:0;font-size:.78rem;cursor:pointer;background:var(--bg);border:1px solid var(--border);padding:8px 12px;border-radius:8px;white-space:nowrap">
+          📁 Upload<input type="file" accept="image/*" onchange="handlePhotoUpload(this)" style="display:none">
+        </label>
+      </div>
+      <div id="mfPhotoPreview" style="margin-top:6px;display:none"><img id="mfPhotoImg" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid var(--border)"></div>
     </div>
     <div class="fg"><label>Google Scholar URL</label><input id="mfScholar" type="url" placeholder="https://scholar.google.com/..."></div>
     <div class="fg"><label>TAMU Profile URL</label><input id="mfTamu" type="url" placeholder="https://www.arch.tamu.edu/staff/..."></div>
@@ -495,7 +532,7 @@ const FIREBASE_CONFIG = {
       <div class="fg"><label>Tags (comma-separated)</label><input id="pfTags" type="text" placeholder="Health, Equity, Aging"></div>
       <div class="fg"><label>Status</label><select id="pfStatus"><option>Active</option><option>Completed</option><option>Paused</option></select></div>
     </div>
-    <div class="fg"><label>Google Drive URL</label><input id="pfDrive" type="url"></div>
+    <div class="fg"><label>Link URL</label><input id="pfDrive" type="url" placeholder="https://…"></div>
     <div class="fg" style="display:flex;align-items:center;gap:10px">
       <input type="checkbox" id="pfRec" style="width:18px;height:18px">
       <label for="pfRec" style="text-transform:none;letter-spacing:0;font-size:.88rem;cursor:pointer">Currently recruiting</label>
@@ -554,7 +591,16 @@ const FIREBASE_CONFIG = {
       <div class="fg"><label>Category</label><select id="nfCat"><option>Publication</option><option>Award</option><option>Event</option><option>Announcement</option><option>Other</option></select></div>
       <div class="fg"><label>Date *</label><input id="nfDate" type="date"></div>
     </div>
-    <div class="fg"><label>Content *</label><textarea id="nfContent"></textarea></div>
+    <div class="fg"><label>Content *</label><textarea id="nfContent" style="min-height:110px"></textarea></div>
+    <div class="fg"><label>Photo URL</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="nfPhoto" type="url" placeholder="https://… (image URL)">
+        <label style="text-transform:none;letter-spacing:0;font-size:.78rem;cursor:pointer;background:var(--bg);border:1px solid var(--border);padding:8px 12px;border-radius:8px;white-space:nowrap">
+          📁 Upload<input type="file" accept="image/*" onchange="handleNewsPhotoUpload(this)" style="display:none">
+        </label>
+      </div>
+    </div>
+    <div class="fg"><label>Link URL</label><input id="nfLink" type="url" placeholder="https://… (related article, paper, etc.)"></div>
     <div class="fg"><label>Author</label><input id="nfAuthor" type="text" value="DrAL Lab"></div>
     <div class="factions">
       <button class="btn-cancel" onclick="closeModal('nFormModal')">Cancel</button>
@@ -572,10 +618,26 @@ const FIREBASE_CONFIG = {
     <div class="fg"><label>Description</label><textarea id="afDesc" style="min-height:110px"></textarea></div>
     <div class="fg"><label>Mission Statement</label><textarea id="afMission" style="min-height:80px"></textarea></div>
     <div class="fg"><label>Contact Email</label><input id="afContact" type="email"></div>
+    <div class="fg"><label>LinkedIn URL</label><input id="afLinkedin" type="url" placeholder="https://www.linkedin.com/in/…"></div>
     <div class="factions">
       <button class="btn-cancel" onclick="closeModal('aboutModal')">Cancel</button>
       <button class="btn-save" onclick="saveAbout()">Save</button>
     </div>
+  </div>
+</div>
+
+<!-- Tag Manager -->
+<div class="overlay" id="tagManagerModal" onclick="if(event.target===this)closeModal('tagManagerModal')">
+  <div class="modal" style="max-width:420px">
+    <button class="modal-x" onclick="closeModal('tagManagerModal')">×</button>
+    <h3>Manage Project Tags</h3>
+    <p style="font-size:.83rem;color:var(--muted);margin-bottom:18px">Tags appear as filter buttons on the Projects page. Changes apply to all projects.</p>
+    <div id="tagList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px"></div>
+    <div style="display:flex;gap:8px">
+      <input id="newTagInput" type="text" placeholder="New tag name…" style="flex:1;padding:9px 13px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.88rem;outline:none" onkeydown="if(event.key==='Enter')addTag()">
+      <button class="add-btn" onclick="addTag()">+ Add</button>
+    </div>
+    <div class="factions"><button class="btn-cancel" onclick="closeModal('tagManagerModal')">Done</button></div>
   </div>
 </div>
 
@@ -636,6 +698,7 @@ let isAdmin = false;
 let mFilter='all', pFilter='all', rFilter='all';
 let _viewMemberId = null;
 let _pickedMemberIds = [];
+let showClosedRec = false;
 
 /* ══════════════════════════════════════════════════
    HELPERS
@@ -644,7 +707,7 @@ const ini  = n => n.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
 const gm   = id => D.members.find(m=>m.id===id);
 const gp   = id => D.projects.find(p=>p.id===id);
 const fmt  = s => s ? new Date(s+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : 'Open';
-const rb   = r => ({'Faculty':'rb-f','PhD Student':'rb-p','Post Doc':'rb-d','Researcher':'rb-r','Visiting Scholar':'rb-d'}[r]||'rb-p');
+const rb   = r => ({'Faculty':'rb-f','PhD Student':'rb-p','Master Student':'rb-ms','Post Doc':'rb-d','Researcher':'rb-r','Visiting Scholar':'rb-d'}[r]||'rb-p');
 const nextId = arr => arr.length ? Math.max(...arr.map(x=>x.id))+1 : 1;
 
 function closeModal(id){ document.getElementById(id).classList.remove('open') }
@@ -776,9 +839,10 @@ function checkPw(){
 function renderStats(){
   if(!D) return;
   const active=D.members.filter(m=>m.status==='Active').length;
+  const activeProjects=D.projects.filter(p=>p.status!=='Completed').length;
   document.getElementById('heroStats').innerHTML=[
     [active+'+','Members'],
-    [D.projects.length,'Projects'],
+    [activeProjects,'Projects'],
     [D.members.filter(m=>m.role==='Faculty').length,'Faculty'],
   ].map(([n,l])=>`<div class="stat"><div class="stat-n">${n}</div><div class="stat-l">${l}</div></div>`).join('');
   document.getElementById('heroDesc').textContent=D.about.description;
@@ -794,13 +858,18 @@ function renderAbout(){
   document.getElementById('aboutDesc2').textContent=a.description;
   document.getElementById('aboutMission').textContent=a.mission;
   document.getElementById('contactLink').href='mailto:'+a.contact;
+  const li=document.getElementById('linkedinLink');
+  if(a.linkedin){li.href=a.linkedin;li.style.display='inline-block';}else{li.style.display='none';}
   document.getElementById('aboutCards').innerHTML=[
     ['🏫','Texas A&M','University'],
     ['👥',D.members.filter(m=>m.status==='Active').length+'+','Active Members'],
-    ['🔬',D.projects.length,'Research Projects'],
+    ['🔬',D.projects.filter(p=>p.status!=='Completed').length,'Research Projects'],
     ['📄','100+','Publications'],
   ].map(([i,n,l])=>`<div class="acard"><div class="acard-icon">${i}</div><div class="acard-num">${n}</div><div class="acard-lbl">${l}</div></div>`).join('');
-  if(isAdmin) document.querySelectorAll('.admin-only').forEach(el=>el.style.display='flex');
+  if(isAdmin){
+    document.querySelectorAll('.admin-only').forEach(el=>el.style.display='flex');
+    document.getElementById('editContactBtn').style.display='block';
+  }
 }
 
 function openAboutEdit(){
@@ -809,6 +878,7 @@ function openAboutEdit(){
   document.getElementById('afDesc').value=a.description;
   document.getElementById('afMission').value=a.mission;
   document.getElementById('afContact').value=a.contact;
+  document.getElementById('afLinkedin').value=a.linkedin||'';
   openModal('aboutModal');
 }
 async function saveAbout(){
@@ -817,6 +887,7 @@ async function saveAbout(){
     description: document.getElementById('afDesc').value.trim(),
     mission:     document.getElementById('afMission').value.trim(),
     contact:     document.getElementById('afContact').value.trim(),
+    linkedin:    document.getElementById('afLinkedin').value.trim()||null,
   };
   await saveToFirebase();
   closeModal('aboutModal');
@@ -831,36 +902,55 @@ function mf(f,btn){mFilter=f;document.querySelectorAll('#page-members .fb').forE
 function rMembers(){
   if(!D) return;
   const q=document.getElementById('ms').value.toLowerCase();
-  const list=D.members.filter(m=>
-    m.status==='Active'&&
-    (mFilter==='all'||m.role===mFilter)&&
-    (!q||m.name.toLowerCase().includes(q)||(m.advisor||'').toLowerCase().includes(q))
-  );
+  const isFormer = mFilter==='Former';
+  const list=D.members.filter(m=>{
+    if(isFormer) return m.status==='Former' && (!q||m.name.toLowerCase().includes(q));
+    return m.status==='Active'&&
+      (mFilter==='all'||m.role===mFilter)&&
+      (!q||m.name.toLowerCase().includes(q)||(m.advisor||'').toLowerCase().includes(q));
+  });
   const g=document.getElementById('mGrid');
-  if(!list.length){g.innerHTML=`<div class="empty"><div class="empty-icon">👤</div><p>No members found.</p></div>`;return}
+  if(!list.length){g.innerHTML=`<div class="empty"><div class="empty-icon">${isFormer?'🎓':'👤'}</div><p>${isFormer?'No former members added yet.':'No members found.'}</p></div>`;return}
   g.innerHTML=list.map(m=>`
     <div class="mc" onclick="openMemberView(${m.id})">
       <div class="card-admin" onclick="event.stopPropagation()">
         <button class="ica ica-edit" onclick="openMemberForm(${m.id})">✏️</button>
         <button class="ica ica-del"  onclick="confirmDelete('member',${m.id})">🗑</button>
       </div>
-      <div class="mc-av">${ini(m.name)}</div>
+      ${m.photoUrl
+        ? `<img class="mc-photo" src="${m.photoUrl}" alt="${m.name}" onerror="this.parentNode.querySelector('.mc-av-fallback').style.display='flex';this.style.display='none'">`
+        : ''}
+      <div class="mc-av mc-av-fallback" style="${m.photoUrl?'display:none':''}">
+        ${ini(m.name)}
+      </div>
       <div class="mc-body">
         <div class="mc-name">${m.name}</div>
+        ${m.dept?`<span class="mc-dept">${m.dept}</span>`:''}
         <div class="mc-email">${m.email}</div>
         ${m.advisor?`<div class="mc-adv">Advisor: ${m.advisor}</div>`:''}
         <span class="rbadge ${rb(m.role)}">${m.role}</span>
+        ${isFormer?'<span class="rbadge" style="background:#f1f5f9;color:#6b7280;margin-left:4px">Former</span>':''}
         ${m.scholar?`<br><a class="slink" href="${m.scholar}" target="_blank" onclick="event.stopPropagation()">🎓 Scholar</a>`:''}
       </div>
     </div>`).join('');
 }
 
+
 function openMemberView(id){
   _viewMemberId=id;
   const m=gm(id);
-  document.getElementById('mvAv').textContent=ini(m.name);
+  const avEl=document.getElementById('mvAv');
+  if(m.photoUrl){
+    avEl.innerHTML=`<img src="${m.photoUrl}" alt="${m.name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.parentNode.textContent='${ini(m.name)}'">`;
+  } else {
+    avEl.textContent=ini(m.name);
+  }
   document.getElementById('mvName').textContent=m.name;
-  document.getElementById('mvMeta').textContent=m.role+(m.advisor?' · Advisor: '+m.advisor:'');
+  const metaParts=[m.role];
+  if(m.dept) metaParts.push(m.dept);
+  if(m.advisor) metaParts.push('Advisor: '+m.advisor);
+  if(m.status==='Former') metaParts.push('Former Member');
+  document.getElementById('mvMeta').textContent=metaParts.join(' · ');
   const bio=document.getElementById('mvBio');
   m.bio?(bio.textContent=m.bio,bio.style.display='block'):bio.style.display='none';
   document.getElementById('mvLinks').innerHTML=[
@@ -878,23 +968,49 @@ function deleteMemberFromView(){closeModal('mViewModal');confirmDelete('member',
 
 function openMemberForm(id=null){
   document.getElementById('mFormTitle').textContent=id?'Edit Member':'Add Member';
+  document.getElementById('mfPhotoPreview').style.display='none';
   if(id){
     const m=gm(id);
     document.getElementById('mfId').value=m.id;
     document.getElementById('mfName').value=m.name;
     document.getElementById('mfRole').value=m.role;
     document.getElementById('mfEmail').value=m.email;
+    document.getElementById('mfDept').value=m.dept||'';
     document.getElementById('mfAdvisor').value=m.advisor||'';
     document.getElementById('mfStatus').value=m.status;
     document.getElementById('mfScholar').value=m.scholar||'';
     document.getElementById('mfTamu').value=m.tamu||'';
     document.getElementById('mfBio').value=m.bio||'';
+    document.getElementById('mfPhotoUrl').value=m.photoUrl||'';
+    if(m.photoUrl){
+      document.getElementById('mfPhotoPreview').style.display='block';
+      document.getElementById('mfPhotoImg').src=m.photoUrl;
+    }
   } else {
-    ['mfId','mfName','mfEmail','mfAdvisor','mfScholar','mfTamu','mfBio'].forEach(f=>document.getElementById(f).value='');
+    ['mfId','mfName','mfEmail','mfAdvisor','mfScholar','mfTamu','mfBio','mfPhotoUrl'].forEach(f=>document.getElementById(f).value='');
     document.getElementById('mfRole').value='PhD Student';
     document.getElementById('mfStatus').value='Active';
+    document.getElementById('mfDept').value='';
   }
   openModal('mFormModal');
+}
+
+function handlePhotoUpload(input){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    document.getElementById('mfPhotoUrl').value=e.target.result;
+    document.getElementById('mfPhotoPreview').style.display='block';
+    document.getElementById('mfPhotoImg').src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function handleNewsPhotoUpload(input){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{ document.getElementById('nfPhoto').value=e.target.result; };
+  reader.readAsDataURL(file);
 }
 
 async function saveMember(){
@@ -908,10 +1024,12 @@ async function saveMember(){
     id:id||nextId(D.members), name, email,
     role:document.getElementById('mfRole').value,
     status:document.getElementById('mfStatus').value,
+    dept:document.getElementById('mfDept').value||null,
     advisor:document.getElementById('mfAdvisor').value.trim()||null,
     scholar:document.getElementById('mfScholar').value.trim()||null,
     tamu:document.getElementById('mfTamu').value.trim()||null,
     bio:document.getElementById('mfBio').value.trim()||null,
+    photoUrl:document.getElementById('mfPhotoUrl').value.trim()||null,
   };
   if(id){const i=D.members.findIndex(m=>m.id===id);D.members[i]=obj;}
   else{D.members.push(obj);}
@@ -923,10 +1041,39 @@ async function saveMember(){
 /* ══════════════════════════════════════════════════
    PROJECTS
 ══════════════════════════════════════════════════ */
-function pf(f,btn){pFilter=f;document.querySelectorAll('#page-projects .fb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');rProjects()}
+const TAG_PALETTE=[
+  {bg:'#dcfce7',color:'#166534'},{bg:'#dbeafe',color:'#1e40af'},
+  {bg:'#fee2e2',color:'#991b1b'},{bg:'#ede9fe',color:'#5b21b6'},
+  {bg:'#fef3c7',color:'#92400e'},{bg:'#ffedd5',color:'#9a3412'},
+  {bg:'#e0e7ff',color:'#3730a3'},{bg:'#fce7f3',color:'#9d174d'},
+];
+function tagStyle(tag){
+  if(!D||!D.projectTags) return '';
+  const idx=D.projectTags.indexOf(tag)%TAG_PALETTE.length;
+  const c=idx>=0?TAG_PALETTE[idx]:TAG_PALETTE[0];
+  return `background:${c.bg};color:${c.color}`;
+}
+
+function initTagFilters(){
+  if(!D) return;
+  const tags=D.projectTags||[];
+  const bar=document.getElementById('projectFilterBar');
+  // Remove old tag buttons (keep search input and All button)
+  Array.from(bar.querySelectorAll('.fb')).forEach(b=>{ if(b.textContent!=='All') b.remove(); });
+  tags.forEach(t=>{
+    const b=document.createElement('button');
+    b.className='fb'+(pFilter===t?' on':'');
+    b.textContent=t;
+    b.onclick=()=>pf(t,b);
+    bar.appendChild(b);
+  });
+}
+
+function pf(f,btn){pFilter=f;document.querySelectorAll('#projectFilterBar .fb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');rProjects()}
 
 function rProjects(){
   if(!D) return;
+  initTagFilters();
   const q=document.getElementById('ps').value.toLowerCase();
   const list=D.projects.filter(p=>
     (pFilter==='all'||p.tags.includes(pFilter))&&
@@ -935,9 +1082,17 @@ function rProjects(){
   const g=document.getElementById('pGrid');
   if(!list.length){g.innerHTML=`<div class="empty"><div class="empty-icon">🔬</div><p>No projects found.</p></div>`;return}
   g.innerHTML=list.map(p=>{
-    const tags=p.tags.map(t=>`<span class="tag t-${t.replace(' ','')}">${t}</span>`).join('');
+    const tags=p.tags.map(t=>`<span class="tag" style="${tagStyle(t)}">${t}</span>`).join('');
     const chips=p.memberIds.map(id=>{const m=gm(id);return m?`<div class="chip"><div class="chip-av">${ini(m.name)}</div>${m.name.split(' ')[0]}<button class="chip-rm" onclick="removeMemberFromProj(${p.id},${id},event)">✕</button></div>`:''}).join('');
-    const drv=p.driveUrl?`<a class="drive-btn" href="${p.driveUrl}" target="_blank">📁 Drive</a>`:`<span class="drive-btn na">📁 Not linked</span>`;
+    const lnk=p.driveUrl
+      ?`<a class="drive-btn" href="${p.driveUrl}" target="_blank">🔗 Link</a>`
+      :(isAdmin
+        ?`<button class="drive-btn" onclick="openProjForm(${p.id})" style="cursor:pointer">🔗 Add Link</button>`
+        :`<span class="drive-btn na">🔗 Not linked</span>`);
+    // Status dot
+    let dotCls='dot-a', statusTxt='Active';
+    if(p.status==='Completed'){dotCls='dot-c';statusTxt='Completed';}
+    else if(p.recruiting){dotCls='dot-r';statusTxt='Recruiting';}
     return `
     <div class="pc">
       <div class="pc-head">
@@ -954,8 +1109,8 @@ function rProjects(){
         ${isAdmin?`<button class="add-btn" style="margin-top:10px;font-size:.75rem;padding:6px 14px" onclick="openProjForm(${p.id})">+ Team Member 추가</button>`:''}
       </div>
       <div class="pc-foot">
-        <div class="sdot"><div class="dot ${p.recruiting?'dot-r':'dot-a'}"></div><span>${p.recruiting?'Recruiting':'Active'}</span></div>
-        ${drv}
+        <div class="sdot"><div class="dot ${dotCls}"></div><span>${statusTxt}</span></div>
+        ${lnk}
       </div>
     </div>`;
   }).join('');
@@ -1040,30 +1195,76 @@ async function saveProject(){
 }
 
 /* ══════════════════════════════════════════════════
+   TAG MANAGER
+══════════════════════════════════════════════════ */
+function openTagManager(){
+  if(!D.projectTags) D.projectTags=[];
+  renderTagList();
+  openModal('tagManagerModal');
+}
+function renderTagList(){
+  const tags=D.projectTags||[];
+  document.getElementById('tagList').innerHTML=tags.map((t,i)=>{
+    const c=TAG_PALETTE[i%TAG_PALETTE.length];
+    return `<div style="display:flex;align-items:center;gap:6px;background:${c.bg};color:${c.color};padding:4px 10px;border-radius:20px;font-size:.79rem;font-weight:500">
+      ${t}
+      <button onclick="removeTag(${i})" style="background:none;border:none;color:inherit;cursor:pointer;font-size:.85rem;padding:0;line-height:1">×</button>
+    </div>`;
+  }).join('');
+}
+async function addTag(){
+  const v=document.getElementById('newTagInput').value.trim();
+  if(!v) return;
+  if(!D.projectTags) D.projectTags=[];
+  if(D.projectTags.includes(v)){alert('Tag already exists.');return}
+  D.projectTags.push(v);
+  document.getElementById('newTagInput').value='';
+  renderTagList();
+  await saveToFirebase();
+  initTagFilters();
+}
+async function removeTag(idx){
+  D.projectTags.splice(idx,1);
+  renderTagList();
+  await saveToFirebase();
+  initTagFilters();
+}
+
+/* ══════════════════════════════════════════════════
    RECRUITING
 ══════════════════════════════════════════════════ */
 function rf(f,btn){rFilter=f;document.querySelectorAll('#page-recruiting .fb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');rRec()}
+
+function toggleShowClosed(){
+  showClosedRec=!showClosedRec;
+  const btn=document.getElementById('showClosedBtn');
+  btn.classList.toggle('on',showClosedRec);
+  btn.textContent=showClosedRec?'📂 Hide Closed':'📂 Show Closed';
+  rRec();
+}
 
 function rRec(){
   if(!D) return;
   const q=document.getElementById('rs').value.toLowerCase();
   const list=D.recruiting.filter(r=>
-    r.status==='Open'&&
+    (showClosedRec ? true : r.status==='Open')&&
     (rFilter==='all'||r.type===rFilter)&&
     (!q||r.title.toLowerCase().includes(q)||r.desc.toLowerCase().includes(q))
   );
   const g=document.getElementById('rGrid');
-  if(!list.length){g.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><p>No open positions at this time.</p></div>`;return}
+  if(!list.length){g.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><p>No ${showClosedRec?'':'open '}positions at this time.</p></div>`;return}
   g.innerHTML=list.map(r=>{
     const proj=gp(r.projectId);
+    const isClosed=r.status!=='Open';
     return `
-    <div class="rc ${r.urgent?'urg':''}">
+    <div class="rc ${r.urgent&&!isClosed?'urg':''} ${isClosed?'closed-pos':''}">
       ${isAdmin?`<div style="position:absolute;top:14px;right:14px;display:flex;gap:5px"><button class="ica ica-edit" onclick="openRecForm(${r.id})">✏️</button><button class="ica ica-del" onclick="confirmDelete('rec',${r.id})">🗑</button></div>`:''}
       <div class="rc-top">
         <div><div class="rc-title">${r.title}</div><div class="rc-proj">${proj?proj.title:''}</div></div>
         <div class="rc-badges">
           <span class="rbg rbg-t">${r.type}</span>
-          ${r.urgent?'<span class="rbg rbg-u">Urgent</span>':''}
+          ${r.urgent&&!isClosed?'<span class="rbg rbg-u">Urgent</span>':''}
+          ${isClosed?`<span class="rc-closed-badge">${r.status}</span>`:''}
         </div>
       </div>
       <div class="rc-desc">${r.desc}</div>
@@ -1073,7 +1274,7 @@ function rRec(){
           ${r.funding?`<span>💰 ${r.funding}</span>`:''}
           <span>📬 ${r.contactEmail}</span>
         </div>
-        <a class="apply" href="mailto:${r.contactEmail}?subject=Application: ${encodeURIComponent(r.title)}">Apply / Contact</a>
+        ${!isClosed?`<a class="apply" href="mailto:${r.contactEmail}?subject=Application: ${encodeURIComponent(r.title)}">Apply / Contact</a>`:'<span style="font-size:.78rem;color:var(--muted)">Position closed</span>'}
       </div>
     </div>`;
   }).join('');
@@ -1139,16 +1340,26 @@ function rNews(){
   const sorted=[...D.news].sort((a,b)=>new Date(b.date)-new Date(a.date));
   if(!sorted.length){feed.innerHTML=`<div class="empty"><div class="empty-icon">📰</div><p>No news yet.</p></div>`;return}
   feed.innerHTML=sorted.map(n=>`
-    <div class="news-card">
+    <div class="news-card" id="nc-${n.id}">
       ${isAdmin?`<div style="position:absolute;top:16px;right:16px;display:flex;gap:5px"><button class="ica ica-edit" onclick="openNewsForm(${n.id})">✏️</button><button class="ica ica-del" onclick="confirmDelete('news',${n.id})">🗑</button></div>`:''}
+      ${n.photoUrl?`<div class="news-img-wrap"><img src="${n.photoUrl}" alt="${n.title}" loading="lazy"></div>`:''}
       <div class="news-meta">
         <span class="news-cat cat-${n.category.replace(' ','')}">${n.category}</span>
         <span class="news-date">${fmt(n.date)}</span>
       </div>
       <div class="news-title">${n.title}</div>
-      <div class="news-body">${n.content}</div>
+      <div class="news-body collapsed" id="nb-${n.id}">${n.content}</div>
+      <button class="news-read-more" onclick="toggleNewsExpand(${n.id})">Read more ▾</button>
+      ${n.link?`<a class="news-ext-link" href="${n.link}" target="_blank">🔗 Read full article →</a>`:''}
       <div class="news-author">— ${n.author}</div>
     </div>`).join('');
+}
+
+function toggleNewsExpand(id){
+  const body=document.getElementById('nb-'+id);
+  const btn=body.nextElementSibling;
+  const expanded=body.classList.toggle('collapsed');
+  btn.textContent=expanded?'Read more ▾':'Show less ▴';
 }
 
 function openNewsForm(id=null){
@@ -1161,6 +1372,8 @@ function openNewsForm(id=null){
     document.getElementById('nfDate').value=n.date;
     document.getElementById('nfContent').value=n.content;
     document.getElementById('nfAuthor').value=n.author;
+    document.getElementById('nfPhoto').value=n.photoUrl||'';
+    document.getElementById('nfLink').value=n.link||'';
   } else {
     document.getElementById('nfId').value='';
     document.getElementById('nfTitle').value='';
@@ -1168,6 +1381,8 @@ function openNewsForm(id=null){
     document.getElementById('nfCat').value='Publication';
     document.getElementById('nfDate').value=new Date().toISOString().slice(0,10);
     document.getElementById('nfAuthor').value='DrAL Lab';
+    document.getElementById('nfPhoto').value='';
+    document.getElementById('nfLink').value='';
   }
   openModal('nFormModal');
 }
@@ -1184,6 +1399,8 @@ async function saveNews(){
     id:id||nextId(D.news), title, content, date,
     category:document.getElementById('nfCat').value,
     author:document.getElementById('nfAuthor').value.trim()||'DrAL Lab',
+    photoUrl:document.getElementById('nfPhoto').value.trim()||null,
+    link:document.getElementById('nfLink').value.trim()||null,
   };
   if(id){const i=D.news.findIndex(n=>n.id===id);D.news[i]=obj;}
   else{D.news.unshift(obj);}
@@ -1221,9 +1438,10 @@ function confirmDelete(type,id){
 ══════════════════════════════════════════════════ */
 function renderAll(){
   if(!D) return;
+  if(!D.projectTags) D.projectTags=window.SEED_DATA.projectTags||["Health","Mobility","Equity","Urban Design","Aging"];
   renderStats(); rMembers();
   const active=document.querySelector('.page.on')?.id?.replace('page-','');
-  if(active==='projects') rProjects();
+  if(active==='projects'){ initTagFilters(); rProjects(); }
   if(active==='recruiting') rRec();
   if(active==='news') rNews();
   if(active==='about') renderAbout();
