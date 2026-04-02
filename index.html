@@ -199,6 +199,32 @@ nav{
 .news-title{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:600;margin-bottom:10px}
 .news-body{font-size:.86rem;color:var(--muted);line-height:1.7}
 .news-author{font-size:.76rem;color:var(--muted);margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+/* Lightbox */
+.lightbox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:500;align-items:center;justify-content:center;cursor:zoom-out}
+.lightbox.open{display:flex}
+.lightbox img{max-width:92vw;max-height:88vh;border-radius:10px;object-fit:contain;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.lightbox-close{position:absolute;top:18px;right:22px;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:1.6rem;width:40px;height:40px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);transition:background .2s}
+.lightbox-close:hover{background:rgba(255,255,255,.3)}
+.lightbox-prev,.lightbox-next{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.15);border:none;color:#fff;font-size:1.8rem;width:48px;height:48px;border-radius:50%;cursor:pointer;backdrop-filter:blur(4px);transition:background .2s;display:flex;align-items:center;justify-content:center}
+.lightbox-prev{left:18px}.lightbox-next{right:18px}
+.lightbox-prev:hover,.lightbox-next:hover{background:rgba(255,255,255,.3)}
+.lightbox-count{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.7);font-size:.82rem}
+/* Clickable news images */
+.news-thumb{cursor:zoom-in}
+.carousel-slide img{cursor:zoom-in}
+/* Hero gallery */
+.hero-gallery{flex-shrink:0;position:relative;display:none}
+.hero-gallery.has-photos{display:block}
+.hero-gallery-track{display:flex;transition:transform .42s ease;border-radius:14px;overflow:hidden}
+.hero-gallery-slide{min-width:100%;flex-shrink:0}
+.hero-gallery-slide img{width:100%;height:100%;object-fit:cover;display:block;border-radius:14px}
+.hero-gallery-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.35);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);z-index:2;transition:background .2s}
+.hero-gallery-btn:hover{background:rgba(0,0,0,.6)}
+.hero-gallery-btn.prev{left:7px}.hero-gallery-btn.next{right:7px}
+.hero-gallery-dots{display:flex;justify-content:center;gap:5px;position:absolute;bottom:8px;left:50%;transform:translateX(-50%)}
+.hero-gallery-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.45);border:none;cursor:pointer;padding:0;transition:background .2s}
+.hero-gallery-dot.on{background:#fff}
+@media(max-width:768px){.hero-gallery{max-width:180px}}
 .news-content-row{display:flex;gap:16px;align-items:flex-start}
 .news-thumb{width:130px;height:110px;border-radius:9px;object-fit:cover;flex-shrink:0;border:1px solid var(--border)}
 .news-content-col{flex:1;min-width:0}
@@ -370,8 +396,8 @@ const FIREBASE_CONFIG = {
 <nav>
   <div class="nav-brand">Dr<span>AL</span> Lab</div>
   <div class="nav-center">
-    <button class="nbtn" onclick="goto('about',this)">About</button>
-    <button class="nbtn on" onclick="goto('members',this)">Members</button>
+    <button class="nbtn on" onclick="goto('about',this)">About</button>
+    <button class="nbtn" onclick="goto('members',this)">Members</button>
     <button class="nbtn" onclick="goto('projects',this)">Projects</button>
     <button class="nbtn" onclick="goto('recruiting',this)">Recruiting</button>
     <button class="nbtn" onclick="goto('news',this)">News</button>
@@ -401,8 +427,12 @@ const FIREBASE_CONFIG = {
     </div>
   </div>
   <div style="display:flex;flex-direction:column;align-items:flex-end;gap:22px;flex-shrink:0">
-    <div id="heroPhotoBox" class="hero-photo-box" style="display:none">
-      <img id="heroPhotoImg" src="" alt="Lab Photo">
+    <!-- Hero photo gallery -->
+    <div id="heroGallery" class="hero-gallery" style="width:300px;height:220px">
+      <div id="heroGalleryTrack" class="hero-gallery-track" style="height:100%"></div>
+      <button class="hero-gallery-btn prev" onclick="heroGalleryStep(-1)">&#8249;</button>
+      <button class="hero-gallery-btn next" onclick="heroGalleryStep(1)">&#8250;</button>
+      <div id="heroGalleryDots" class="hero-gallery-dots"></div>
     </div>
     <div class="hero-stats" id="heroStats"></div>
   </div>
@@ -411,7 +441,7 @@ const FIREBASE_CONFIG = {
 </div>
 
 <!-- ABOUT -->
-<div id="page-about" class="page">
+<div id="page-about" class="page on">
   <div class="sh-row sh">
     <div><h2>About DrAL Lab</h2><div class="sh-line"></div></div>
     <button class="add-btn admin-only" style="display:none" onclick="openAboutEdit()">✏️ Edit About</button>
@@ -436,7 +466,7 @@ const FIREBASE_CONFIG = {
 </div>
 
 <!-- MEMBERS -->
-<div id="page-members" class="page on">
+<div id="page-members" class="page">
   <div class="sh"><h2>Lab Members</h2><div class="sh-line"></div><p>Faculty, researchers, and graduate students advancing active living research.</p></div>
   <div class="admin-bar" id="mAdminBar">
     <span>🟢 Admin Mode — ✏️/🗑 버튼으로 편집/삭제, 또는 새 멤버 추가</span>
@@ -759,46 +789,33 @@ const FIREBASE_CONFIG = {
     <button class="modal-x" onclick="closeModal('bgPickerModal')">×</button>
     <h3>Hero Background Settings</h3>
 
-    <!-- Mode tabs -->
-    <div style="display:flex;gap:0;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:22px">
-      <button id="bgTab-slideshow" onclick="setBgTab('slideshow')" style="flex:1;padding:9px;border:none;background:var(--green);color:#fff;font-size:.83rem;font-family:inherit;cursor:pointer">🎞 Slideshow</button>
-      <button id="bgTab-color"     onclick="setBgTab('color')"     style="flex:1;padding:9px;border:none;background:var(--white);color:var(--text);font-size:.83rem;font-family:inherit;cursor:pointer">🎨 Solid Color</button>
-    </div>
-
-    <!-- Slideshow panel -->
-    <div id="bgPanel-slideshow">
-      <p style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Active photos in slideshow. Click × to remove. Add more below.</p>
-      <div id="bgPresetGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px"></div>
-      <div class="fg"><label>Add via Image URL</label>
-        <div style="display:flex;gap:8px">
-          <input id="bgCustomUrl" type="url" placeholder="https://… (direct image URL)">
-          <button class="add-btn" onclick="applyCustomBg()">+ Add</button>
-        </div>
-      </div>
-      <div class="fg"><label>Upload Image</label>
-        <label style="display:inline-flex;align-items:center;gap:7px;cursor:pointer;background:var(--bg);border:1.5px solid var(--border);padding:9px 16px;border-radius:8px;font-size:.85rem">
-          📁 Choose file…
-          <input type="file" accept="image/*" onchange="uploadBgImage(this)" style="display:none">
-        </label>
-        <span id="bgUploadStatus" style="font-size:.78rem;color:var(--muted);margin-left:8px"></span>
-      </div>
-    </div>
-
     <!-- Solid color panel -->
-    <div id="bgPanel-color" style="display:none">
-      <p style="font-size:.82rem;color:var(--muted);margin-bottom:14px">Choose a background color. The overlay will still be applied on top.</p>
-      <div class="fg"><label>Background Color</label>
-        <div style="display:flex;gap:10px;align-items:center">
-          <input type="color" id="bgSolidColor" value="#2d4a3e" style="width:50px;height:38px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;padding:2px">
-          <input type="text"  id="bgSolidHex"   value="#2d4a3e" placeholder="#000000" style="width:110px;padding:9px 13px;border:1.5px solid var(--border);border-radius:8px;font-family:monospace;font-size:.9rem;outline:none" oninput="syncColorFromHex()">
-          <button class="add-btn" onclick="applyBgColor()">Apply Color</button>
-        </div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px" id="colorSwatches"></div>
+    <div class="fg" style="margin-bottom:20px">
+      <label style="font-size:.77rem;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)">🎨 Background Color</label>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap">
+        <input type="color" id="bgSolidColor" value="#2d4a3e" style="width:50px;height:38px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;padding:2px">
+        <input type="text"  id="bgSolidHex"   value="#2d4a3e" placeholder="#000000" style="width:110px;padding:9px 13px;border:1.5px solid var(--border);border-radius:8px;font-family:monospace;font-size:.9rem;outline:none" oninput="syncColorFromHex()">
+        <button class="add-btn" onclick="applyBgColor()">Apply</button>
       </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px" id="colorSwatches"></div>
     </div>
 
-    <!-- Text / Accent colors (shared) -->
-    <div style="margin-top:4px;padding-top:16px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:14px">
+    <!-- Hero Gallery Manager -->
+    <div style="padding-top:18px;border-top:1px solid var(--border)">
+      <label style="display:block;font-size:.77rem;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:10px">🖼 Hero Gallery Photos <span style="text-transform:none;font-weight:400">(우측에 갤러리로 표시)</span></label>
+      <div id="heroGalleryMgrList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;min-height:36px"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+        <input id="bgHeroPhotoUrl" type="url" placeholder="https://… (이미지 URL)" style="flex:1;min-width:160px;padding:8px 11px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none">
+        <button onclick="addHeroGalleryUrl()" style="background:var(--green);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:.8rem;cursor:pointer;white-space:nowrap">+ URL</button>
+        <label style="font-size:.8rem;cursor:pointer;background:var(--bg);border:1px solid var(--border);padding:8px 12px;border-radius:8px;white-space:nowrap;display:flex;align-items:center">
+          📁 Upload<input type="file" accept="image/*" multiple onchange="uploadHeroGalleryPhotos(this)" style="display:none">
+        </label>
+      </div>
+      <p style="font-size:.78rem;color:var(--muted)">사진 여러 장을 추가하면 갤러리로 자동 전환됩니다. × 버튼으로 삭제.</p>
+    </div>
+
+    <!-- Text / Accent colors -->
+    <div style="margin-top:18px;padding-top:18px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:14px">
       <div>
         <label style="display:block;font-size:.77rem;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:7px">Hero Text Color</label>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
@@ -815,17 +832,6 @@ const FIREBASE_CONFIG = {
           <input type="text"  id="bgAccentHex"   value="#a5d4c4" placeholder="#a5d4c4" style="width:100px;padding:8px 11px;border:1.5px solid var(--border);border-radius:8px;font-family:monospace;font-size:.88rem;outline:none" oninput="syncAccentColorFromHex()">
           <button onclick="applyAccentColor()" style="background:var(--green);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:.8rem;cursor:pointer">Apply</button>
           <button onclick="resetAccentColor()" style="background:none;border:1px solid var(--border);padding:7px 11px;border-radius:8px;font-size:.78rem;cursor:pointer;color:var(--muted)">↺ Default</button>
-        </div>
-      </div>
-      <div>
-        <label style="display:block;font-size:.77rem;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:7px">Hero Photo <span style="text-transform:none;font-weight:400">(우측 1:1 사진 — optional)</span></label>
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          <input id="bgHeroPhotoUrl" type="url" placeholder="https://… 또는 아래서 파일 업로드" style="flex:1;min-width:160px;padding:8px 11px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none">
-          <label style="font-size:.8rem;cursor:pointer;background:var(--bg);border:1px solid var(--border);padding:8px 12px;border-radius:8px;white-space:nowrap">
-            📁<input type="file" accept="image/*" onchange="uploadHeroPhoto(this)" style="display:none">
-          </label>
-          <button onclick="applyHeroPhoto()" style="background:var(--green);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:.8rem;cursor:pointer">Apply</button>
-          <button onclick="removeHeroPhoto()" style="background:none;border:1px solid var(--border);padding:7px 11px;border-radius:8px;font-size:.78rem;cursor:pointer;color:var(--muted)">✕ Remove</button>
         </div>
       </div>
     </div>
@@ -860,6 +866,15 @@ const FIREBASE_CONFIG = {
       <button class="btn-danger" id="confirmOk">Delete</button>
     </div>
   </div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightboxModal" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">×</button>
+  <button class="lightbox-prev" onclick="lightboxStep(-1,event)">&#8249;</button>
+  <img id="lightboxImg" src="" alt="">
+  <button class="lightbox-next" onclick="lightboxStep(1,event)">&#8250;</button>
+  <div class="lightbox-count" id="lightboxCount"></div>
 </div>
 
 <!-- ═══ DATA + FIREBASE ═══ -->
@@ -1751,12 +1766,23 @@ async function saveRec(){
    NEWS
 ══════════════════════════════════════════════════ */
 function buildCarousel(photos, id, cls=''){
+  return buildCarouselLightbox(photos, id, cls, null);
+}
+function buildCarouselLightbox(photos, id, cls='', photosJson=null){
   if(!photos||!photos.length) return '';
   const cid='car-'+id;
-  if(photos.length===1) return `<img class="${cls?cls+' ':''}" src="${photos[0]}" style="display:block;width:100%;object-fit:cover;border-radius:9px;border:1px solid var(--border)" loading="lazy">`;
-  const slides=photos.map(p=>`<div class="carousel-slide"><img src="${p}" loading="lazy"></div>`).join('');
+  const clickAttr = photosJson ? `onclick="openLightbox(${photosJson},this.dataset.idx||0)" data-idx="0"` : '';
+  if(photos.length===1){
+    const click = photosJson ? `onclick="openLightbox(${photosJson},0)" style="cursor:zoom-in"` : '';
+    return `<img class="${cls?cls+' ':''}" src="${photos[0]}" ${click} style="display:block;width:100%;object-fit:cover;border-radius:9px;border:1px solid var(--border)" loading="lazy">`;
+  }
+  const slides=photos.map((p,i)=>{
+    const click = photosJson ? `onclick="openLightbox(JSON.parse(this.closest('.carousel').dataset.photos),${i})" style="cursor:zoom-in"` : '';
+    return `<div class="carousel-slide"><img src="${p}" loading="lazy" ${click}></div>`;
+  }).join('');
   const dots=photos.map((_,i)=>`<button class="carousel-dot${i===0?' on':''}" onclick="carGo('${cid}',${i})"></button>`).join('');
-  return `<div class="carousel ${cls}" id="${cid}" data-idx="0">
+  const photosData = photosJson ? `data-photos='${photosJson}'` : '';
+  return `<div class="carousel ${cls}" id="${cid}" data-idx="0" ${photosData}>
     <div class="carousel-track" id="${cid}-track">${slides}</div>
     <button class="carousel-btn prev" onclick="carStep('${cid}',-1)">&#8249;</button>
     <button class="carousel-btn next" onclick="carStep('${cid}',1)">&#8250;</button>
@@ -1778,16 +1804,113 @@ function carGo(id,idx){
   el.querySelectorAll('.carousel-dot').forEach((d,i)=>d.classList.toggle('on',i===idx));
 }
 
+/* ── LIGHTBOX ── */
+let _lbPhotos=[]; let _lbIdx=0;
+function openLightbox(photos, idx=0){
+  if(typeof photos==='string') try{photos=JSON.parse(photos);}catch(e){photos=[photos];}
+  _lbPhotos=Array.isArray(photos)?photos:[photos];
+  _lbIdx=parseInt(idx)||0;
+  _showLightbox();
+  document.getElementById('lightboxModal').classList.add('open');
+}
+function _showLightbox(){
+  document.getElementById('lightboxImg').src=_lbPhotos[_lbIdx]||'';
+  const count=document.getElementById('lightboxCount');
+  count.textContent=_lbPhotos.length>1?`${_lbIdx+1} / ${_lbPhotos.length}`:'';
+  document.querySelector('.lightbox-prev').style.display=_lbPhotos.length>1?'flex':'none';
+  document.querySelector('.lightbox-next').style.display=_lbPhotos.length>1?'flex':'none';
+}
+function closeLightbox(){ document.getElementById('lightboxModal').classList.remove('open'); }
+function lightboxStep(dir,e){ e.stopPropagation(); _lbIdx=(_lbIdx+dir+_lbPhotos.length)%_lbPhotos.length; _showLightbox(); }
+document.addEventListener('keydown',e=>{
+  if(!document.getElementById('lightboxModal').classList.contains('open')) return;
+  if(e.key==='ArrowLeft') lightboxStep(-1,{stopPropagation:()=>{}});
+  if(e.key==='ArrowRight') lightboxStep(1,{stopPropagation:()=>{}});
+  if(e.key==='Escape') closeLightbox();
+});
+
+/* ── HERO GALLERY ── */
+let _heroGalleryIdx=0; let _heroGalleryTimer=null;
+function getHeroGalleryPhotos(){
+  return (D&&D.heroBgSettings&&D.heroBgSettings.heroPhotos&&D.heroBgSettings.heroPhotos.length)
+    ? D.heroBgSettings.heroPhotos : [];
+}
+function initHeroGallery(){
+  const photos=getHeroGalleryPhotos();
+  const gallery=document.getElementById('heroGallery');
+  const track=document.getElementById('heroGalleryTrack');
+  const dots=document.getElementById('heroGalleryDots');
+  if(!gallery||!track) return;
+  if(!photos.length){ gallery.classList.remove('has-photos'); return; }
+  gallery.classList.add('has-photos');
+  track.innerHTML=photos.map(p=>`<div class="hero-gallery-slide"><img src="${p}" alt="Lab" loading="lazy" onclick="openLightbox(${JSON.stringify(photos)},${photos.indexOf(p)})"></div>`).join('');
+  dots.innerHTML=photos.map((_,i)=>`<button class="hero-gallery-dot${i===0?' on':''}" onclick="heroGalleryGo(${i})"></button>`).join('');
+  _heroGalleryIdx=0;
+  clearInterval(_heroGalleryTimer);
+  if(photos.length>1) _heroGalleryTimer=setInterval(()=>heroGalleryGo((_heroGalleryIdx+1)%photos.length),5000);
+}
+function heroGalleryGo(idx){
+  const photos=getHeroGalleryPhotos();
+  if(!photos.length) return;
+  const track=document.getElementById('heroGalleryTrack');
+  if(!track) return;
+  _heroGalleryIdx=(idx+photos.length)%photos.length;
+  track.style.transform=`translateX(-${_heroGalleryIdx*100}%)`;
+  document.querySelectorAll('.hero-gallery-dot').forEach((d,i)=>d.classList.toggle('on',i===_heroGalleryIdx));
+}
+function heroGalleryStep(dir){ heroGalleryGo(_heroGalleryIdx+dir); }
+
+function renderHeroGalleryMgr(){
+  const photos=getHeroGalleryPhotos();
+  const el=document.getElementById('heroGalleryMgrList'); if(!el) return;
+  if(!photos.length){ el.innerHTML='<span style="font-size:.8rem;color:var(--muted)">사진이 없습니다. 아래에서 추가하세요.</span>'; return; }
+  el.innerHTML=photos.map((p,i)=>`
+    <div style="position:relative;width:76px;height:56px;border-radius:7px;overflow:hidden;border:1px solid var(--border)">
+      <img src="${p}" style="width:100%;height:100%;object-fit:cover">
+      <button onclick="removeHeroGalleryPhoto(${i})" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);border:none;color:#fff;width:18px;height:18px;border-radius:50%;cursor:pointer;font-size:.7rem;padding:0;display:flex;align-items:center;justify-content:center">×</button>
+    </div>`).join('');
+}
+async function addHeroGalleryUrl(){
+  const url=document.getElementById('bgHeroPhotoUrl').value.trim(); if(!url) return;
+  if(!D.heroBgSettings) D.heroBgSettings={mode:'color',color:'#2d4a3e',textColor:'#ffffff',accentColor:'#a5d4c4',heroPhotos:[]};
+  if(!D.heroBgSettings.heroPhotos) D.heroBgSettings.heroPhotos=[];
+  D.heroBgSettings.heroPhotos.push(url);
+  document.getElementById('bgHeroPhotoUrl').value='';
+  await saveToFirebase();
+  initHeroGallery(); renderHeroGalleryMgr();
+}
+async function uploadHeroGalleryPhotos(input){
+  const files=Array.from(input.files); if(!files.length) return;
+  if(!D.heroBgSettings) D.heroBgSettings={mode:'color',color:'#2d4a3e',textColor:'#ffffff',accentColor:'#a5d4c4',heroPhotos:[]};
+  if(!D.heroBgSettings.heroPhotos) D.heroBgSettings.heroPhotos=[];
+  let loaded=0;
+  files.forEach(file=>{
+    const r=new FileReader();
+    r.onload=async e=>{
+      D.heroBgSettings.heroPhotos.push(e.target.result);
+      loaded++;
+      if(loaded===files.length){ await saveToFirebase(); initHeroGallery(); renderHeroGalleryMgr(); }
+    };
+    r.readAsDataURL(file);
+  });
+  input.value='';
+}
+async function removeHeroGalleryPhoto(idx){
+  if(!D.heroBgSettings||!D.heroBgSettings.heroPhotos) return;
+  D.heroBgSettings.heroPhotos.splice(idx,1);
+  await saveToFirebase();
+  initHeroGallery(); renderHeroGalleryMgr();
+}
+
 function rNews(){
   if(!D) return;
   const feed=document.getElementById('newsFeed');
   const sorted=[...D.news].sort((a,b)=>new Date(b.date)-new Date(a.date));
   if(!sorted.length){feed.innerHTML=`<div class="empty"><div class="empty-icon">📰</div><p>No news yet.</p></div>`;return}
   feed.innerHTML=sorted.map(n=>{
-    // Normalize photos: support both legacy photoUrl and new photos array
     const photos=[...(n.photos||[]),...(n.photoUrl&&!n.photos?[n.photoUrl]:[])].filter(Boolean);
     const hasPhotos=photos.length>0;
-    const carouselHtml = hasPhotos ? buildCarousel(photos,'n'+n.id,'news-carousel') : '';
+    const carouselHtml = hasPhotos ? buildCarouselLightbox(photos,'n'+n.id,'news-carousel',JSON.stringify(photos).replace(/'/g,"&#39;")) : '';
     return `
     <div class="news-card" id="nc-${n.id}">
       ${isAdmin?`<div style="position:absolute;top:16px;right:16px;display:flex;gap:5px"><button class="ica ica-edit" onclick="openNewsForm(${n.id})">✏️</button><button class="ica ica-del" onclick="confirmDelete('news',${n.id})">🗑</button></div>`:''}
@@ -1929,7 +2052,7 @@ function renderAll(){
   const s=D.heroBgSettings||{};
   applyHeroTextColor(s.textColor||'#ffffff');
   applyHeroAccentColor(s.accentColor||'#a5d4c4');
-  applyHeroPhotoDisplay(s.heroPhotoUrl||null);
+  initHeroGallery();
   renderStats(); rMembers();
   const active=document.querySelector('.page.on')?.id?.replace('page-','');
   if(active==='projects'){ initTagFilters(); rProjects(); }
@@ -1957,12 +2080,7 @@ function applyHeroAccentColor(hex){
   document.querySelectorAll('.hero-text h1 em').forEach(el=>el.style.color=hex||'#a5d4c4');
 }
 function applyHeroPhotoDisplay(url){
-  const box=document.getElementById('heroPhotoBox');
-  const img=document.getElementById('heroPhotoImg');
-  if(box&&img){
-    if(url){img.src=url;box.style.display='block';}
-    else{box.style.display='none';}
-  }
+  // Legacy single photo - now handled by gallery; keep stub for compat
 }
 
 function initHeroBg(){
@@ -2010,7 +2128,7 @@ function initHeroBg(){
   }
   applyHeroTextColor(settings.textColor||'#ffffff');
   applyHeroAccentColor(settings.accentColor||'#a5d4c4');
-  applyHeroPhotoDisplay(settings.heroPhotoUrl||null);
+  initHeroGallery();
 }
 
 function goBg(idx){
@@ -2022,101 +2140,30 @@ function goBg(idx){
   document.querySelectorAll('.hero-bg-dot')[heroBgIndex]?.classList.add('on');
 }
 
-let _currentBgTab='slideshow';
-function setBgTab(tab){
-  _currentBgTab=tab;
-  document.getElementById('bgPanel-slideshow').style.display=tab==='slideshow'?'block':'none';
-  document.getElementById('bgPanel-color').style.display=tab==='color'?'block':'none';
-  document.getElementById('bgTab-slideshow').style.cssText='flex:1;padding:9px;border:none;font-size:.83rem;font-family:inherit;cursor:pointer;background:'+(tab==='slideshow'?'var(--green);color:#fff':'var(--white);color:var(--text)');
-  document.getElementById('bgTab-color').style.cssText='flex:1;padding:9px;border:none;font-size:.83rem;font-family:inherit;cursor:pointer;background:'+(tab==='color'?'var(--green);color:#fff':'var(--white);color:var(--text)');
-}
+let _currentBgTab='color'; // slideshow removed
+function setBgTab(tab){ _currentBgTab=tab; } // stub for compat
 
 function openBgPicker(){
   const settings=getHeroSettings();
-  setBgTab(settings.mode||'slideshow');
-  renderBgPresetGrid();
   document.getElementById('bgSolidColor').value=settings.color||'#2d4a3e';
   document.getElementById('bgSolidHex').value=settings.color||'#2d4a3e';
   document.getElementById('bgTextColor').value=settings.textColor||'#ffffff';
   document.getElementById('bgTextHex').value=settings.textColor||'#ffffff';
   document.getElementById('bgAccentColor').value=settings.accentColor||'#a5d4c4';
   document.getElementById('bgAccentHex').value=settings.accentColor||'#a5d4c4';
-  document.getElementById('bgHeroPhotoUrl').value=settings.heroPhotoUrl||'';
-  // Swatches
+  document.getElementById('bgHeroPhotoUrl').value='';
   const swatches=['#2d4a3e','#1a1a2e','#0f3460','#16213e','#1b4332','#3d2b1f','#4a1942','#2c2c54','#000000','#1c1c1c'];
   document.getElementById('colorSwatches').innerHTML=swatches.map(s=>`
     <div onclick="pickSwatch('${s}')" title="${s}" style="width:30px;height:30px;border-radius:50%;background:${s};cursor:pointer;border:2.5px solid ${s===(settings.color||'#2d4a3e')?'var(--gold)':'transparent'}"></div>`).join('');
-  document.getElementById('bgCustomUrl').value='';
-  document.getElementById('bgUploadStatus').textContent='';
+  renderHeroGalleryMgr();
   openModal('bgPickerModal');
 }
 
-function renderBgPresetGrid(){
-  const presets=getHeroPresets();
-  document.getElementById('bgPresetGrid').innerHTML=presets.map((p,i)=>`
-    <div style="position:relative;border-radius:9px;overflow:hidden;border:2px solid ${i===heroBgIndex&&_currentBgTab==='slideshow'?'var(--gold)':'#e0dbd2'};aspect-ratio:16/9">
-      <img src="${p.url}" style="width:100%;height:100%;object-fit:cover;display:block;cursor:pointer" loading="lazy" onclick="pickBg(${i})">
-      <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);color:#fff;font-size:.66rem;padding:3px 7px;display:flex;justify-content:space-between;align-items:center">
-        <span>${p.label||'Photo'}</span>
-        ${presets.length>1?`<button onclick="removeBgPreset(${i},event)" style="background:none;border:none;color:#fff;cursor:pointer;font-size:.85rem;padding:0;line-height:1">×</button>`:''}
-      </div>
-    </div>`).join('');
-}
+// renderBgPresetGrid removed (slideshow deprecated)
 
-function pickBg(idx){
-  setBgTab('slideshow');
-  goBg(idx);
-  clearInterval(heroBgTimer);
-  heroBgTimer=setInterval(()=>goBg((heroBgIndex+1)%Math.max(heroBgLayers.length,1)),6000);
-  renderBgPresetGrid();
-}
+// pickBg / removeBgPreset removed (slideshow deprecated)
 
-async function removeBgPreset(idx,e){
-  e.stopPropagation();
-  if(!D.heroBgPresets) D.heroBgPresets=[...HERO_PRESETS];
-  if(D.heroBgPresets.length<=1){alert('최소 1개의 배경이 있어야 합니다.');return}
-  D.heroBgPresets.splice(idx,1);
-  if(heroBgIndex>=D.heroBgPresets.length) heroBgIndex=0;
-  await saveToFirebase();
-  initHeroBg();
-  renderBgPresetGrid();
-}
-
-async function applyCustomBg(){
-  const url=document.getElementById('bgCustomUrl').value.trim();
-  if(!url) return;
-  if(!D.heroBgPresets) D.heroBgPresets=[...HERO_PRESETS];
-  const ex=D.heroBgPresets.findIndex(p=>p.url===url);
-  if(ex>=0){pickBg(ex);return;}
-  D.heroBgPresets.push({label:'Custom',url});
-  if(!D.heroBgSettings) D.heroBgSettings={mode:'slideshow',color:'#2d4a3e',textColor:'#ffffff',accentColor:'#a5d4c4',heroPhotoUrl:null};
-  D.heroBgSettings.mode='slideshow';
-  await saveToFirebase();
-  initHeroBg();
-  goBg(D.heroBgPresets.length-1);
-  document.getElementById('bgCustomUrl').value='';
-  renderBgPresetGrid();
-}
-
-async function uploadBgImage(input){
-  const file=input.files[0]; if(!file) return;
-  const status=document.getElementById('bgUploadStatus');
-  status.textContent='읽는 중…';
-  const reader=new FileReader();
-  reader.onload=async e=>{
-    if(!D.heroBgPresets) D.heroBgPresets=[...HERO_PRESETS];
-    D.heroBgPresets.push({label:file.name.replace(/\.[^.]+$/,''),url:e.target.result});
-    if(!D.heroBgSettings) D.heroBgSettings={mode:'slideshow',color:'#2d4a3e',textColor:'#ffffff',accentColor:'#a5d4c4',heroPhotoUrl:null};
-    D.heroBgSettings.mode='slideshow';
-    status.textContent='✓ 추가됨';
-    await saveToFirebase();
-    initHeroBg();
-    goBg(D.heroBgPresets.length-1);
-    renderBgPresetGrid();
-    input.value='';
-  };
-  reader.readAsDataURL(file);
-}
+// applyCustomBg / uploadBgImage removed (slideshow deprecated)
 
 function pickSwatch(hex){
   document.getElementById('bgSolidColor').value=hex;
@@ -2169,28 +2216,7 @@ async function resetAccentColor(){
   await saveToFirebase();
   applyHeroAccentColor('#a5d4c4');
 }
-async function uploadHeroPhoto(input){
-  const file=input.files[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=async e=>{
-    document.getElementById('bgHeroPhotoUrl').value=e.target.result;
-  };
-  reader.readAsDataURL(file);
-}
-async function applyHeroPhoto(){
-  const url=document.getElementById('bgHeroPhotoUrl').value.trim();
-  if(!D.heroBgSettings) D.heroBgSettings={mode:'slideshow',color:'#2d4a3e',textColor:'#ffffff',accentColor:'#a5d4c4',heroPhotoUrl:null};
-  D.heroBgSettings.heroPhotoUrl=url||null;
-  await saveToFirebase();
-  applyHeroPhotoDisplay(url||null);
-}
-async function removeHeroPhoto(){
-  document.getElementById('bgHeroPhotoUrl').value='';
-  if(!D.heroBgSettings) D.heroBgSettings={mode:'slideshow',color:'#2d4a3e',textColor:'#ffffff',accentColor:'#a5d4c4',heroPhotoUrl:null};
-  D.heroBgSettings.heroPhotoUrl=null;
-  await saveToFirebase();
-  applyHeroPhotoDisplay(null);
-}
+// uploadHeroPhoto / applyHeroPhoto / removeHeroPhoto replaced by gallery functions above
 
 
 
