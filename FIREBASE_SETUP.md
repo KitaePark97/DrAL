@@ -129,7 +129,7 @@ Google 클라우드(Firestore)에 저장됩니다. Firebase Console → Firestor
 **Q: 비밀번호를 바꾸고 싶어요.**
 `index.html`에서 이 줄을 찾아서 교체:
 ```javascript
-const PW_HASH = btoa('dral2026');
+const PW_HASH = btoa('');
 // → 새 비밀번호:
 const PW_HASH = btoa('새비밀번호');
 ```
