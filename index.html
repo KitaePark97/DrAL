@@ -215,10 +215,10 @@ nav{
 /* Hero gallery */
 .hero-gallery{flex-shrink:0;position:relative;display:none;border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.35);border:2.5px solid rgba(255,255,255,.18)}
 .hero-gallery.has-photos{display:block}
-.hero-gallery-inner{overflow:hidden;width:100%;height:100%}
-.hero-gallery-track{display:flex;transition:transform .5s cubic-bezier(.4,0,.2,1);height:100%}
-.hero-gallery-slide{min-width:100%;flex-shrink:0;height:100%}
-.hero-gallery-slide img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in}
+.hero-gallery-inner{width:100%;height:100%;overflow:hidden;position:relative}
+.hero-gallery-track{display:flex;width:100%;height:100%;will-change:transform;transition:transform .5s cubic-bezier(.4,0,.2,1)}
+.hero-gallery-slide{width:100%;min-width:100%;max-width:100%;flex:0 0 100%;height:100%;overflow:hidden}
+.hero-gallery-slide img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in;pointer-events:auto}
 .hero-gallery-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.4);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;z-index:2;transition:all .2s;backdrop-filter:blur(6px)}
 .hero-gallery-btn:hover{background:rgba(0,0,0,.7);transform:translateY(-50%) scale(1.08)}
 .hero-gallery-btn.prev{left:9px}.hero-gallery-btn.next{right:9px}
@@ -455,7 +455,7 @@ const FIREBASE_CONFIG = {
   <div style="display:flex;flex-direction:column;align-items:flex-end;gap:22px;flex-shrink:0">
     <!-- Hero photo gallery -->
     <div id="heroGallery" class="hero-gallery" style="width:300px;height:240px">
-      <div class="hero-gallery-inner">
+      <div class="hero-gallery-inner" id="heroGalleryInner">
         <div id="heroGalleryTrack" class="hero-gallery-track"></div>
       </div>
       <button class="hero-gallery-btn prev" onclick="heroGalleryStep(-1)">&#8249;</button>
@@ -567,7 +567,10 @@ const FIREBASE_CONFIG = {
   </div>
   <div class="admin-bar" id="calAdminBar">
     <span>🟢 Admin Mode — 이벤트 추가/편집/삭제</span>
-    <button class="add-btn" onclick="openEventForm()">+ Add Event</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="add-btn" style="background:#0369a1" onclick="openEvTypeManager()">⚙ Manage Types</button>
+      <button class="add-btn" onclick="openEventForm()">+ Add Event</button>
+    </div>
   </div>
   <div class="cal-legend">
     <div class="cal-leg-item"><div class="cal-leg-dot" style="background:#16a34a"></div>Lab Meeting</div>
@@ -919,17 +922,13 @@ const FIREBASE_CONFIG = {
     <input type="hidden" id="evId">
     <div class="fg"><label>Title *</label><input id="evTitle" type="text" placeholder="Lab Monthly Meeting"></div>
     <div class="fr">
-      <div class="fg"><label>Date *</label><input id="evDate" type="date"></div>
-      <div class="fg"><label>Type</label>
-        <select id="evType">
-          <option value="meeting">Lab Meeting</option>
-          <option value="deadline">Deadline</option>
-          <option value="seminar">Seminar</option>
-          <option value="event">Event</option>
-        </select>
-      </div>
+      <div class="fg"><label>Start Date *</label><input id="evDate" type="date"></div>
+      <div class="fg"><label>End Date <span style="font-weight:400;color:var(--muted)">(multi-day)</span></label><input id="evEndDate" type="date"></div>
     </div>
-    <div class="fg"><label>Time <span style="font-weight:400;color:var(--muted)">(optional)</span></label><input id="evTime" type="time"></div>
+    <div class="fr">
+      <div class="fg"><label>Type</label><select id="evType"></select></div>
+      <div class="fg"><label>Time <span style="font-weight:400;color:var(--muted)">(optional)</span></label><input id="evTime" type="time"></div>
+    </div>
     <div class="fg"><label>Description</label><textarea id="evDesc" style="min-height:70px"></textarea></div>
     <div class="fg"><label>Link URL <span style="font-weight:400;color:var(--muted)">(optional)</span></label><input id="evLink" type="url" placeholder="https://…"></div>
     <div class="fg"><label>Recurring</label>
@@ -944,6 +943,23 @@ const FIREBASE_CONFIG = {
       <button class="btn-cancel" onclick="closeModal('evFormModal')">Cancel</button>
       <button class="btn-save" id="evSaveBtn" onclick="saveEvent()">Save Event</button>
     </div>
+  </div>
+</div>
+
+<!-- Event Type Manager -->
+<div class="overlay" id="evTypeManagerModal" onclick="if(event.target===this)closeModal('evTypeManagerModal')">
+  <div class="modal" style="max-width:440px">
+    <button class="modal-x" onclick="closeModal('evTypeManagerModal')">×</button>
+    <h3>Manage Event Types</h3>
+    <p style="font-size:.83rem;color:var(--muted);margin-bottom:18px">Calendar에 표시되는 이벤트 유형을 추가/제거합니다.</p>
+    <div id="evTypeList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <input id="newEvTypeId" type="text" placeholder="type-id (영문 소문자)" style="width:130px;padding:9px 11px;border:1.5px solid var(--border);border-radius:8px;font-family:monospace;font-size:.82rem;outline:none">
+      <input id="newEvTypeLabel" type="text" placeholder="표시 이름" style="flex:1;min-width:100px;padding:9px 11px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none">
+      <input id="newEvTypeColor" type="color" value="#2563eb" style="width:38px;height:38px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;padding:2px">
+      <button class="add-btn" onclick="addEvType()">+ Add</button>
+    </div>
+    <div class="factions"><button class="btn-cancel" onclick="closeModal('evTypeManagerModal')">Done</button></div>
   </div>
 </div>
 
@@ -1658,6 +1674,7 @@ function getRecTypes(){ return (D&&D.recTypes&&D.recTypes.length)?D.recTypes:[..
 function openRecTypeManager(){
   if(!D.recTypes) D.recTypes=[...DEFAULT_REC_TYPES];
   if(!D.events) D.events=[];
+  if(!D.calEventTypes) D.calEventTypes=[...DEFAULT_EV_TYPES];
   renderRecTypeList();
   openModal('recTypeModal');
 }
@@ -1672,6 +1689,7 @@ async function addRecType(){
   const v=document.getElementById('newRecTypeInput').value.trim(); if(!v) return;
   if(!D.recTypes) D.recTypes=[...DEFAULT_REC_TYPES];
   if(!D.events) D.events=[];
+  if(!D.calEventTypes) D.calEventTypes=[...DEFAULT_EV_TYPES];
   if(D.recTypes.includes(v)){alert('Type already exists.');return}
   D.recTypes.push(v);
   document.getElementById('newRecTypeInput').value='';
@@ -1767,7 +1785,7 @@ function rRec(){
     const proj=gp(r.projectId);
     const isClosed=r.status!=='Open';
     return `
-    <div class="rc ${r.urgent&&!isClosed?'urg':''} ${isClosed?'closed-pos':''}">
+    <div class="rc ${r.urgent&&!isClosed?'urg':''} ${isClosed?'closed-pos':''}" data-recid="${r.id}">
       ${isAdmin?`<div style="position:absolute;top:14px;right:14px;display:flex;gap:5px"><button class="ica ica-edit" onclick="openRecForm(${r.id})">✏️</button><button class="ica ica-del" onclick="confirmDelete('rec',${r.id})">🗑</button></div>`:''}
       <div class="rc-top">
         <div style="flex:1">
@@ -1933,28 +1951,40 @@ function getHeroGalleryPhotos(){
 function initHeroGallery(){
   const photos=getHeroGalleryPhotos();
   const gallery=document.getElementById('heroGallery');
+  const inner=document.getElementById('heroGalleryInner');
   const track=document.getElementById('heroGalleryTrack');
   const dots=document.getElementById('heroGalleryDots');
   if(!gallery||!track) return;
   if(!photos.length){ gallery.classList.remove('has-photos'); return; }
   gallery.classList.add('has-photos');
   const photosCopy=[...photos];
-  track.innerHTML=photosCopy.map((p,i)=>`<div class="hero-gallery-slide"><img src="${p}" alt="Lab" loading="lazy" onclick="openLightbox(${JSON.stringify(photosCopy).replace(/"/g,"'")},${i})"></div>`).join('');
-  dots.innerHTML=photos.map((_,i)=>`<button class="hero-gallery-dot${i===0?' on':''}" onclick="heroGalleryGo(${i})"></button>`).join('');
+  const n=photosCopy.length;
+  // Each slide = 100% of container width; track = n * 100%
+  track.style.width=(n*100)+'%';
+  track.style.transform='translateX(0)';
+  track.innerHTML=photosCopy.map((p,i)=>{
+    return `<div class="hero-gallery-slide" style="width:${100/n}%"><img src="${p}" alt="Lab" loading="lazy" onclick="openLightbox(JSON.parse(decodeURIComponent(this.dataset.photos)),${i})" data-photos="${encodeURIComponent(JSON.stringify(photosCopy))}"></div>`;
+  }).join('');
+  dots.innerHTML=n>1?photosCopy.map((_,i)=>`<button class="hero-gallery-dot${i===0?' on':''}" onclick="heroGalleryGo(${i})"></button>`).join(''):'';
   _heroGalleryIdx=0;
   clearInterval(_heroGalleryTimer);
-  if(photos.length>1) _heroGalleryTimer=setInterval(()=>heroGalleryGo((_heroGalleryIdx+1)%photos.length),5000);
+  if(n>1) _heroGalleryTimer=setInterval(()=>heroGalleryGo((_heroGalleryIdx+1)%n),5000);
+  // Update count
+  const cnt=document.getElementById('heroGalleryCount');
+  if(cnt){cnt.textContent=n>1?'1/'+n:'';cnt.style.display=n>1?'block':'none';}
 }
 function heroGalleryGo(idx){
   const photos=getHeroGalleryPhotos();
   if(!photos.length) return;
   const track=document.getElementById('heroGalleryTrack');
   if(!track) return;
-  _heroGalleryIdx=(idx+photos.length)%photos.length;
-  track.style.transform=`translateX(-${_heroGalleryIdx*100}%)`;
+  const n=photos.length;
+  _heroGalleryIdx=(idx+n)%n;
+  // Each slide is (100/n)% of track; shift by slide index
+  track.style.transform=`translateX(-${_heroGalleryIdx*(100/n)}%)`;
   document.querySelectorAll('.hero-gallery-dot').forEach((d,i)=>d.classList.toggle('on',i===_heroGalleryIdx));
   const cnt=document.getElementById('heroGalleryCount');
-  if(cnt) { cnt.textContent=photos.length>1?`${_heroGalleryIdx+1}/${photos.length}`:''; cnt.style.display=photos.length>1?'block':'none'; }
+  if(cnt){cnt.textContent=n>1?`${_heroGalleryIdx+1}/${n}`:'';cnt.style.display=n>1?'block':'none';}
 }
 function heroGalleryStep(dir){ heroGalleryGo(_heroGalleryIdx+dir); }
 
@@ -2149,6 +2179,7 @@ function renderAll(){
   if(!D.memberRoles) D.memberRoles=[...DEFAULT_MEMBER_ROLES];
   if(!D.recTypes) D.recTypes=[...DEFAULT_REC_TYPES];
   if(!D.events) D.events=[];
+  if(!D.calEventTypes) D.calEventTypes=[...DEFAULT_EV_TYPES];
   // Apply saved hero colors + photo
   const s=D.heroBgSettings||{};
   applyHeroTextColor(s.textColor||'#ffffff');
@@ -2326,19 +2357,95 @@ async function resetAccentColor(){
    CALENDAR
 ══════════════════════════════════════════════════ */
 let calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
-const EV_COLORS={meeting:'ev-meeting',deadline:'ev-deadline',seminar:'ev-seminar',event:'ev-event'};
-const EV_LABELS={meeting:'Lab Meeting',deadline:'Deadline',seminar:'Seminar',event:'Event'};
 const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 
+/* ── Event Types (dynamic) ── */
+const DEFAULT_EV_TYPES=[
+  {id:'meeting', label:'Lab Meeting', color:'#16a34a', bg:'#dcfce7', text:'#166534'},
+  {id:'deadline',label:'Deadline',    color:'#991b1b', bg:'#fee2e2', text:'#991b1b'},
+  {id:'seminar', label:'Seminar',     color:'#92400e', bg:'#fef3c7', text:'#92400e'},
+  {id:'event',   label:'Event',       color:'#1e40af', bg:'#dbeafe', text:'#1e40af'},
+];
+function getEvTypes(){ return (D&&D.calEventTypes&&D.calEventTypes.length)?D.calEventTypes:[...DEFAULT_EV_TYPES]; }
+function getEvType(id){ return getEvTypes().find(t=>t.id===id)||{id,label:id,color:'#555',bg:'#f1f5f9',text:'#475569'}; }
+function evColor(typeId){ return getEvType(typeId).color; }
+function evBg(typeId){ return getEvType(typeId).bg; }
+function evText(typeId){ return getEvType(typeId).text; }
+function evLabel(typeId){ return getEvType(typeId).label; }
+
+function renderCalLegend(){
+  const leg=document.querySelector('.cal-legend'); if(!leg) return;
+  leg.innerHTML=getEvTypes().map(t=>`
+    <div class="cal-leg-item"><div class="cal-leg-dot" style="background:${t.color}"></div>${t.label}</div>`).join('');
+}
+
+/* ── Event Type Manager ── */
+function openEvTypeManager(){
+  if(!D.calEventTypes) D.calEventTypes=[...DEFAULT_EV_TYPES];
+  renderEvTypeList();
+  openModal('evTypeManagerModal');
+}
+function renderEvTypeList(){
+  const types=D.calEventTypes||DEFAULT_EV_TYPES;
+  document.getElementById('evTypeList').innerHTML=types.map((t,i)=>`
+    <div style="display:flex;align-items:center;gap:8px">
+      <div style="width:12px;height:12px;border-radius:50%;background:${t.color};flex-shrink:0"></div>
+      <span style="flex:1;font-size:.85rem">${t.label} <span style="color:var(--muted);font-size:.75rem">(${t.id})</span></span>
+      <button onclick="removeEvType(${i})" style="background:none;border:1px solid var(--border);color:var(--red);padding:4px 10px;border-radius:6px;font-size:.78rem;cursor:pointer">Remove</button>
+    </div>`).join('');
+  // Also re-populate evType select in form
+  populateEvTypeSelect();
+}
+async function addEvType(){
+  const id=document.getElementById('newEvTypeId').value.trim().replace(/\s+/g,'-').toLowerCase();
+  const label=document.getElementById('newEvTypeLabel').value.trim();
+  const color=document.getElementById('newEvTypeColor').value;
+  if(!id||!label){alert('ID and label are required.');return}
+  if(!D.calEventTypes) D.calEventTypes=[...DEFAULT_EV_TYPES];
+  if(D.calEventTypes.find(t=>t.id===id)){alert('Type ID already exists.');return}
+  // Derive lighter bg color (mix with white)
+  const r=parseInt(color.slice(1,3),16),g=parseInt(color.slice(3,5),16),b=parseInt(color.slice(5,7),16);
+  const bg='#'+[r,g,b].map(v=>Math.round(v*0.15+255*0.85).toString(16).padStart(2,'0')).join('');
+  D.calEventTypes.push({id,label,color,bg,text:color});
+  ['newEvTypeId','newEvTypeLabel'].forEach(f=>document.getElementById(f).value='');
+  renderEvTypeList();
+  await saveToFirebase();
+  renderCalLegend(); rCalendar();
+}
+async function removeEvType(idx){
+  if(!D.calEventTypes) return;
+  D.calEventTypes.splice(idx,1);
+  renderEvTypeList();
+  await saveToFirebase();
+  renderCalLegend(); rCalendar();
+}
+function populateEvTypeSelect(){
+  const sel=document.getElementById('evType'); if(!sel) return;
+  const cur=sel.value;
+  sel.innerHTML=getEvTypes().map(t=>`<option value="${t.id}"${t.id===cur?' selected':''}>${t.label}</option>`).join('');
+}
+
+/* ── Calendar Events ── */
 function getCalEvents(){
   if(!D) return [];
   const evs=[...(D.events||[])];
-  // Auto-inject recruiting deadlines
+  // Auto-inject recruiting deadlines (with recId for navigation)
   (D.recruiting||[]).filter(r=>r.deadline&&r.status==='Open').forEach(r=>{
-    evs.push({id:'rec-'+r.id,title:'Deadline: '+r.title,date:r.deadline,type:'deadline',desc:r.desc,autoGen:true});
+    evs.push({id:'rec-'+r.id, recId:r.id, title:r.title, date:r.deadline, type:'deadline',
+      desc:r.desc, contactEmail:r.contactEmail, autoGen:true});
   });
   return evs;
+}
+
+/* Get all dates covered by an event (handles multi-day) */
+function getEventDates(ev){
+  if(!ev.endDate||ev.endDate<=ev.date) return [ev.date];
+  const dates=[];
+  const cur=new Date(ev.date+'T00:00:00');
+  const end=new Date(ev.endDate+'T00:00:00');
+  while(cur<=end){ dates.push(cur.toISOString().slice(0,10)); cur.setDate(cur.getDate()+1); }
+  return dates;
 }
 
 function calNav(dir){ calMonth+=dir; if(calMonth>11){calMonth=0;calYear++;}else if(calMonth<0){calMonth=11;calYear--;} rCalendar(); }
@@ -2347,13 +2454,21 @@ function rCalendar(){
   if(!D) return;
   const title=document.getElementById('calTitle');
   if(title) title.textContent=MONTHS[calMonth]+' '+calYear;
+  renderCalLegend();
   const today=new Date(); const todayStr=today.toISOString().slice(0,10);
   const firstDay=new Date(calYear,calMonth,1).getDay();
   const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
   const daysInPrev=new Date(calYear,calMonth,0).getDate();
   const evs=getCalEvents();
+
+  // Build date→events map, handling multi-day
   const evByDate={};
-  evs.forEach(e=>{ const d=e.date; if(!evByDate[d])evByDate[d]=[]; evByDate[d].push(e); });
+  evs.forEach(ev=>{
+    getEventDates(ev).forEach(d=>{
+      if(!evByDate[d]) evByDate[d]=[];
+      evByDate[d].push(ev);
+    });
+  });
 
   const grid=document.getElementById('calGrid'); if(!grid) return;
   let html=DAYS.map(d=>`<div class="cal-header">${d}</div>`).join('');
@@ -2362,55 +2477,99 @@ function rCalendar(){
   for(let i=firstDay-1;i>=0;i--){
     html+=`<div class="cal-cell other-month"><div class="cal-day">${daysInPrev-i}</div></div>`;
   }
-  // This month
+  // This month cells
   for(let d=1;d<=daysInMonth;d++){
     const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const isToday=ds===todayStr;
     const dayEvs=evByDate[ds]||[];
+    const evHtml=dayEvs.slice(0,3).map(ev=>{
+      const typeObj=getEvType(ev.type);
+      const safeTitle=ev.title.replace(/'/g,'&#39;').replace(/"/g,'&quot;');
+      const click=ev.recId
+        ? `gotoRecDeadline(${ev.recId})`
+        : `openEventDetail('${encodeURIComponent(JSON.stringify(ev))}')`;
+      return `<div class="cal-event" style="background:${typeObj.bg};color:${typeObj.text}" onclick="${click}" title="${safeTitle}">${safeTitle}</div>`;
+    }).join('');
     html+=`<div class="cal-cell${isToday?' today':''}">
       <div class="cal-day">${d}</div>
-      ${dayEvs.slice(0,3).map(e=>`<div class="cal-event ${EV_COLORS[e.type]||'ev-event'}" onclick="openEventDetail(${JSON.stringify(e).replace(/"/g,"'").replace(/\n/g,' ')})" title="${e.title}">${e.title}</div>`).join('')}
+      ${evHtml}
       ${dayEvs.length>3?`<div style="font-size:.62rem;color:var(--muted)">+${dayEvs.length-3} more</div>`:''}
     </div>`;
   }
-  // Next month cells
+  // Next month padding
   const total=firstDay+daysInMonth; const remaining=(7-total%7)%7;
   for(let d=1;d<=remaining;d++) html+=`<div class="cal-cell other-month"><div class="cal-day">${d}</div></div>`;
   grid.innerHTML=html;
 
   // Upcoming list
   const now=new Date(); now.setHours(0,0,0,0);
-  const upcoming=evs.filter(e=>new Date(e.date+'T00:00:00')>=now).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,8);
+  const seen=new Set();
+  const upcoming=evs.filter(ev=>{
+    const key=ev.id;
+    if(seen.has(key)) return false;
+    seen.add(key);
+    return new Date(ev.date+'T00:00:00')>=now;
+  }).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,8);
   const upEl=document.getElementById('calUpcoming'); if(!upEl) return;
   if(!upcoming.length){upEl.innerHTML='<div class="empty" style="padding:32px 0"><div class="empty-icon">📅</div><p>No upcoming events.</p></div>';return;}
-  upEl.innerHTML=upcoming.map(e=>`
-    <div style="display:flex;align-items:center;gap:14px;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:13px 18px;cursor:pointer;transition:box-shadow .2s" onclick="openEventDetail(${JSON.stringify(e).replace(/"/g,"'").replace(/\n/g,' ')})" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,.08)'" onmouseout="this.style.boxShadow=''">
+  upEl.innerHTML=upcoming.map(ev=>{
+    const typeObj=getEvType(ev.type);
+    const dateStr=ev.endDate&&ev.endDate>ev.date
+      ? `${MONTHS[parseInt(ev.date.slice(5,7))-1].slice(0,3)} ${parseInt(ev.date.slice(8,10))} – ${MONTHS[parseInt(ev.endDate.slice(5,7))-1].slice(0,3)} ${parseInt(ev.endDate.slice(8,10))}, ${ev.endDate.slice(0,4)}`
+      : new Date(ev.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    const click=ev.recId
+      ? `gotoRecDeadline(${ev.recId})`
+      : `openEventDetail('${encodeURIComponent(JSON.stringify(ev))}')`;
+    return `
+    <div style="display:flex;align-items:center;gap:14px;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:13px 18px;cursor:pointer;transition:box-shadow .2s" onclick="${click}" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,.08)'" onmouseout="this.style.boxShadow=''">
       <div style="text-align:center;min-width:48px">
-        <div style="font-size:.7rem;color:var(--muted);text-transform:uppercase">${MONTHS[parseInt(e.date.slice(5,7))-1].slice(0,3)}</div>
-        <div style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:600;color:var(--green);line-height:1">${parseInt(e.date.slice(8,10))}</div>
+        <div style="font-size:.7rem;color:var(--muted);text-transform:uppercase">${MONTHS[parseInt(ev.date.slice(5,7))-1].slice(0,3)}</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:600;color:var(--green);line-height:1">${parseInt(ev.date.slice(8,10))}</div>
       </div>
-      <div style="width:3px;height:36px;border-radius:2px;background:${e.type==='meeting'?'#16a34a':e.type==='deadline'?'#991b1b':e.type==='seminar'?'#92400e':'#1e40af'}"></div>
+      <div style="width:3px;height:36px;border-radius:2px;background:${typeObj.color}"></div>
       <div style="flex:1">
-        <div style="font-weight:500;font-size:.9rem">${e.title}</div>
-        <div style="font-size:.75rem;color:var(--muted);margin-top:2px">${EV_LABELS[e.type]||e.type}${e.time?' · '+e.time:''}</div>
+        <div style="font-weight:500;font-size:.9rem">${ev.title}</div>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:2px">${typeObj.label} · ${dateStr}${ev.time?' · '+ev.time:''}</div>
+        ${ev.recId?'<div style="font-size:.72rem;color:var(--green-l);margin-top:2px">→ Recruiting 페이지에서 확인</div>':''}
       </div>
-      ${isAdmin&&!e.autoGen?`<button class="ica ica-edit" onclick="event.stopPropagation();openEventForm('${e.id}')">✏️</button><button class="ica ica-del" onclick="event.stopPropagation();confirmDelete('event','${e.id}')">🗑</button>`:''}
-    </div>`).join('');
+      ${isAdmin&&!ev.autoGen?`<div style="display:flex;gap:4px"><button class="ica ica-edit" onclick="event.stopPropagation();openEventForm('${ev.id}')">✏️</button><button class="ica ica-del" onclick="event.stopPropagation();confirmDelete('event','${ev.id}')">🗑</button></div>`:''}
+    </div>`;
+  }).join('');
 }
 
-function openEventDetail(ev){
-  if(typeof ev==='string') try{ev=JSON.parse(ev.replace(/'/g,'"'));}catch(e){}
-  const d=new Date(ev.date+'T00:00:00');
-  const dateStr=d.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+function gotoRecDeadline(recId){
+  // Navigate to Recruiting page and highlight the position
+  const btn=document.querySelector('.nbtn[onclick*="recruiting"]');
+  goto('recruiting',btn);
+  // Scroll to the specific card after a short delay
+  setTimeout(()=>{
+    const card=document.querySelector(`[data-recid="${recId}"]`);
+    if(card){ card.scrollIntoView({behavior:'smooth',block:'center'}); card.style.outline='3px solid var(--gold)'; setTimeout(()=>card.style.outline='',2000); }
+  },300);
+}
+
+function openEventDetail(evEncoded){
+  let ev;
+  try{ ev=JSON.parse(decodeURIComponent(evEncoded)); }catch(e){ return; }
+  const typeObj=getEvType(ev.type);
+  const dateStr=ev.endDate&&ev.endDate>ev.date
+    ? `${new Date(ev.date+'T00:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric'})} – ${new Date(ev.endDate+'T00:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}`
+    : new Date(ev.date+'T00:00:00').toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   document.getElementById('confirmMsg').textContent=ev.title;
-  document.getElementById('confirmSub').innerHTML=`<b>${dateStr}</b>${ev.time?' at '+ev.time:''}<br><span style="color:var(--muted)">${EV_LABELS[ev.type]||ev.type}</span>${ev.desc?'<br><br>'+ev.desc:''}${ev.link?'<br><br><a href="'+ev.link+'" target="_blank" style="color:#2563eb">🔗 More info</a>':''}`;
+  document.getElementById('confirmSub').innerHTML=
+    `<b>${dateStr}</b>${ev.time?' at '+ev.time:''}<br>
+     <span style="display:inline-block;margin-top:4px;padding:2px 10px;border-radius:10px;font-size:.78rem;background:${typeObj.bg};color:${typeObj.text}">${typeObj.label}</span>
+     ${ev.desc?'<p style="margin-top:10px;font-size:.85rem;text-align:left">'+ev.desc+'</p>':''}
+     ${ev.link?'<br><a href="'+ev.link+'" target="_blank" style="color:#2563eb">🔗 More info</a>':''}`;
   document.getElementById('confirmOk').style.display='none';
   document.getElementById('confirmModal').classList.add('open');
-  // Restore ok button when closed
-  document.getElementById('confirmModal').addEventListener('click',()=>{document.getElementById('confirmOk').style.display='block';},{once:true});
+  document.getElementById('confirmModal').addEventListener('click',()=>{
+    document.getElementById('confirmOk').style.display='block';
+  },{once:true});
 }
 
 function openEventForm(id=null){
+  populateEvTypeSelect();
   document.getElementById('evFormTitle').textContent=id?'Edit Event':'Add Event';
   if(id&&typeof id==='string'&&id!=='null'){
     const ev=(D.events||[]).find(e=>e.id===id);
@@ -2418,6 +2577,7 @@ function openEventForm(id=null){
       document.getElementById('evId').value=ev.id;
       document.getElementById('evTitle').value=ev.title;
       document.getElementById('evDate').value=ev.date;
+      document.getElementById('evEndDate').value=ev.endDate||'';
       document.getElementById('evType').value=ev.type;
       document.getElementById('evTime').value=ev.time||'';
       document.getElementById('evDesc').value=ev.desc||'';
@@ -2425,10 +2585,10 @@ function openEventForm(id=null){
       document.getElementById('evRecur').value=ev.recur||'none';
     }
   } else {
-    ['evId','evTitle','evTime','evDesc','evLink'].forEach(f=>document.getElementById(f).value='');
+    ['evId','evTitle','evTime','evDesc','evLink','evEndDate'].forEach(f=>document.getElementById(f).value='');
     document.getElementById('evDate').value=new Date().toISOString().slice(0,10);
-    document.getElementById('evType').value='meeting';
     document.getElementById('evRecur').value='none';
+    if(document.getElementById('evType').options.length) document.getElementById('evType').selectedIndex=0;
   }
   openModal('evFormModal');
 }
@@ -2441,26 +2601,26 @@ async function saveEvent(){
   btn.disabled=true; btn.textContent='Saving…';
   if(!D.events) D.events=[];
   const id=document.getElementById('evId').value||('ev-'+Date.now());
+  const endDate=document.getElementById('evEndDate').value||null;
   const recur=document.getElementById('evRecur').value;
-  const base={id,title,date,type:document.getElementById('evType').value,
+  const base={id,title,date,endDate:endDate&&endDate>date?endDate:null,
+    type:document.getElementById('evType').value,
     time:document.getElementById('evTime').value||null,
     desc:document.getElementById('evDesc').value.trim()||null,
     link:document.getElementById('evLink').value.trim()||null,
     recur};
-  // Generate recurring events
   const toAdd=[base];
   if(recur!=='none'){
     const start=new Date(date+'T00:00:00');
-    for(let i=1;i<=24;i++){
+    for(let i=1;i<=52;i++){
       const next=new Date(start);
       if(recur==='weekly') next.setDate(next.getDate()+7*i);
       else if(recur==='biweekly') next.setDate(next.getDate()+14*i);
-      else if(recur==='monthly'){ next.setMonth(next.getMonth()+i); }
+      else if(recur==='monthly') next.setMonth(next.getMonth()+i);
       if(next.getFullYear()>calYear+2) break;
-      toAdd.push({...base,id:id+'-r'+i,date:next.toISOString().slice(0,10),recur:'none',parentId:id});
+      toAdd.push({...base,id:id+'-r'+i,date:next.toISOString().slice(0,10),endDate:null,recur:'none',parentId:id});
     }
   }
-  // Remove old recurring instances
   D.events=D.events.filter(e=>e.parentId!==id&&e.id!==id);
   D.events.push(...toAdd);
   await saveToFirebase();
