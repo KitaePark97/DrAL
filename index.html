@@ -59,7 +59,7 @@ nav{
   display:flex;align-items:center;justify-content:space-between;
   padding:0 48px;box-shadow:0 2px 20px rgba(0,0,0,.22);
 }
-.nav-brand{font-family:'Cormorant Garamond',serif;font-size:1.45rem;font-weight:600;color:#fff;letter-spacing:.02em}
+.nav-brand{font-family:'Cormorant Garamond',serif;font-size:1.45rem;font-weight:600;color:#fff;letter-spacing:.02em;white-space:nowrap;flex-shrink:0}
 .nav-brand span{color:#a5d4c4}
 .nav-center{display:flex;gap:4px}
 .nbtn{background:none;border:none;color:rgba(255,255,255,.7);font-size:.85rem;padding:8px 17px;border-radius:6px;transition:all .2s}
@@ -362,8 +362,9 @@ nav{
 .mpick.sel .mpick-chk{display:block}
 .empty{text-align:center;padding:64px 0;color:var(--muted)}
 .empty-icon{font-size:2.6rem;margin-bottom:12px}
-footer{background:var(--green);color:rgba(255,255,255,.6);padding:36px 52px;font-size:.8rem;text-align:center;margin-top:80px}
+footer{background:var(--green);color:rgba(255,255,255,.6);padding:36px 52px;font-size:.8rem;text-align:center;margin-top:80px;transition:background .3s}
 footer strong{color:rgba(255,255,255,.9)}
+body.dark footer{background:#0a1510}
 
 /* ── DARK MODE ── */
 body.dark{--bg:#0f1a16;--white:#1a2820;--text:#e8ece9;--muted:#8fa89a;--border:#2a3d34;--green-pale:#162820;--gold-pale:#2a2010;--blue-pale:#0f1e30;--purple-pale:#1a1530;--red-pale:#2a1010}
@@ -511,6 +512,20 @@ body.dark .fg input,.dark .fg select,.dark .fg textarea{background:var(--white);
 /* Drag hint banner */
 .drag-hint{font-size:.72rem;color:var(--muted);display:none;align-items:center;gap:5px;padding:6px 12px;background:var(--bg);border-radius:8px;border:1px dashed var(--border);margin-bottom:14px}
 .admin-mode .drag-hint{display:flex}
+
+/* Publications ORCID */
+.pub-filter-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;align-items:center}
+.pub-filter-label{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);min-width:50px}
+.pub-year-btn{padding:4px 11px;border-radius:14px;border:1.5px solid var(--border);background:var(--white);font-size:.77rem;cursor:pointer;transition:all .15s;color:var(--text)}
+.pub-year-btn:hover,.pub-year-btn.on{background:var(--green);color:#fff;border-color:var(--green)}
+.pub-author-btn{padding:4px 11px;border-radius:14px;border:1.5px solid var(--border);background:var(--white);font-size:.77rem;cursor:pointer;transition:all .15s;color:var(--text)}
+.pub-author-btn:hover,.pub-author-btn.on{background:var(--gold);color:#fff;border-color:var(--gold)}
+.orcid-sync-status{font-size:.78rem;color:var(--muted);display:flex;align-items:center;gap:6px;margin-bottom:16px}
+.orcid-sync-dot{width:8px;height:8px;border-radius:50%;background:#6b7280}
+.orcid-sync-dot.syncing{background:var(--gold);animation:pulse 1s infinite}
+.orcid-sync-dot.done{background:#16a34a}
+.orcid-sync-dot.error{background:#dc2626}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 </style>
 </head>
 <body>
@@ -561,6 +576,7 @@ const FIREBASE_CONFIG = {
     <button class="nbtn" onclick="openSearch()" title="Search (Ctrl+K)" style="font-size:1rem;padding:6px 10px">🔍</button>
     <button id="darkToggle" class="nbtn" onclick="toggleDark()" title="Dark Mode" style="font-size:1rem;padding:6px 10px">🌙</button>
     <div class="save-indicator" id="saveIndicator">✓ Saved</div>
+    <button id="heroNavToggle" onclick="toggleHeroSection()" class="admin-btn" style="display:none" title="Show/Hide hero banner">👁 Hero</button>
     <button id="navMgrBtn" onclick="openNavManager()" class="admin-btn" style="display:none">⚙ Tabs</button>
     <button class="admin-btn" id="adminBtn" onclick="adminToggle()">
       <span id="adminIcon">🔒</span><span id="adminLabel">Admin</span>
@@ -623,7 +639,7 @@ const FIREBASE_CONFIG = {
     <p>No photos yet. Click "Edit About" to add gallery photos.</p>
   </div>
   <div class="about-hero">
-    <div class="about-tag">Texas A&M University · College of Architecture</div>
+    <div class="about-tag" id="aboutInstitution"></div>
     <div class="about-tagline" id="aboutTagline"></div>
     <div class="about-desc"    id="aboutDesc2"></div>
     <div class="about-mission" id="aboutMission"></div>
@@ -648,6 +664,7 @@ const FIREBASE_CONFIG = {
     <span>🟢 Admin Mode — Use ✏️/🗑 buttons to edit/delete, or add a new member</span>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="add-btn" style="background:#6b7280" onclick="resetMemberOrder()">↺ Reset Order</button>
+      <button class="add-btn" style="background:#0369a1" onclick="openDeptManager()">⚙ Departments</button>
       <button class="add-btn" style="background:#0369a1" onclick="openRoleManager()">⚙ Manage Roles</button>
       <button class="add-btn" onclick="openMemberForm()">+ Add Member</button>
     </div>
@@ -707,6 +724,7 @@ const FIREBASE_CONFIG = {
     <button class="fb on" data-fixed onclick="rf('all',this)">All</button>
     <button class="show-closed-toggle" id="showClosedBtn" onclick="toggleShowClosed()">📂 Show Closed</button>
   </div>
+  <div class="drag-hint">⠿ Drag position cards to reorder. Order is saved automatically.</div>
   <div class="rgrid" id="rGrid"></div>
 </div>
 
@@ -743,10 +761,15 @@ const FIREBASE_CONFIG = {
     </div>
   </div>
   <div class="cal-legend" id="calLegend"></div>
-  <div class="cal-nav">
-    <button class="cal-nav-btn" onclick="calNav(-1)">&#8249;</button>
-    <h3 id="calTitle"></h3>
-    <button class="cal-nav-btn" onclick="calNav(1)">&#8250;</button>
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+    <div class="cal-nav" style="margin-bottom:0;flex:1;min-width:200px">
+      <button class="cal-nav-btn" onclick="calNav(-1)">&#8249;</button>
+      <h3 id="calTitle" style="margin:0"></h3>
+      <button class="cal-nav-btn" onclick="calNav(1)">&#8250;</button>
+    </div>
+    <div style="display:flex;gap:8px;flex:0 0 auto">
+      <input id="calSearch" type="text" placeholder="Search events…" oninput="rCalendar()" style="padding:7px 13px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none;width:190px;background:var(--white);color:var(--text)">
+    </div>
   </div>
   <div class="cal-grid" id="calGrid"></div>
   <div style="margin-top:32px">
@@ -759,34 +782,44 @@ const FIREBASE_CONFIG = {
 <div id="page-publications" class="page">
   <div class="sh-row sh">
     <div><h2>Publications</h2><div class="sh-line"></div><p>Peer-reviewed articles, conference papers, and reports from DrAL Lab.</p></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button id="pubExportBtn" onclick="exportIcs('pubs')" style="background:none;border:1.5px solid var(--border);padding:8px 16px;border-radius:8px;font-size:.82rem;cursor:pointer;display:flex;align-items:center;gap:6px">📅 Export .ics</button>
-    </div>
   </div>
   <div class="admin-bar" id="pubAdminBar">
-    <span>🟢 Admin Mode — Add publications manually, or paste a Google Scholar URL below to fetch automatically.</span>
+    <span>🟢 Admin Mode</span>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="add-btn" style="background:#0369a1" onclick="openScholarImport()">🎓 Import from Scholar</button>
-      <button class="add-btn" onclick="openPubForm()">+ Add Publication</button>
+      <button class="add-btn" style="background:#0369a1" onclick="syncOrcidPublications()">🔄 Sync ORCID</button>
+      <button class="add-btn" onclick="openPubForm()">+ Add Manually</button>
     </div>
   </div>
-  <div id="scholarBanner" class="scholar-banner" style="display:none">
-    <div>
-      <div style="font-weight:600;font-size:1rem;margin-bottom:4px">Google Scholar Profile Linked</div>
-      <div id="scholarBannerLink" style="opacity:.8;font-size:.85rem"></div>
+
+  <!-- ORCID Sync Status -->
+  <div class="orcid-sync-status" id="orcidSyncStatus" style="display:none">
+    <div class="orcid-sync-dot" id="orcidSyncDot"></div>
+    <span id="orcidSyncMsg"></span>
+    <span id="orcidLastSync" style="margin-left:auto;color:var(--muted)"></span>
+  </div>
+
+  <!-- Filters -->
+  <div style="margin-bottom:20px">
+    <div class="pub-filter-row">
+      <span class="pub-filter-label">Type</span>
+      <button class="fb on" onclick="pubFilter('all',this)">All</button>
+      <button class="fb" onclick="pubFilter('journal',this)">Journal</button>
+      <button class="fb" onclick="pubFilter('conference',this)">Conference</button>
+      <button class="fb" onclick="pubFilter('report',this)">Report</button>
     </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <a id="scholarProfileLink" href="#" target="_blank">View on Scholar →</a>
-      <button onclick="refreshScholarFeed()" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);padding:8px 14px;border-radius:8px;font-size:.82rem;cursor:pointer">↻ Refresh</button>
+    <div class="pub-filter-row">
+      <span class="pub-filter-label">Year</span>
+      <div id="pubYearFilters" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+    </div>
+    <div class="pub-filter-row">
+      <span class="pub-filter-label">Author</span>
+      <div id="pubAuthorFilters" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+    </div>
+    <div class="pub-filter-row">
+      <input type="text" id="pubSearch" placeholder="🔍 Search title, authors, venue…" oninput="rPublications()" style="padding:8px 14px;border:1.5px solid var(--border);border-radius:20px;font-family:inherit;font-size:.85rem;outline:none;min-width:260px;background:var(--white);color:var(--text)">
     </div>
   </div>
-  <div class="fbar" style="margin-bottom:28px">
-    <input type="text" id="pubSearch" placeholder="Search publications…" oninput="rPublications()">
-    <button class="fb on" onclick="pubFilter('all',this)">All</button>
-    <button class="fb" onclick="pubFilter('journal',this)">Journal</button>
-    <button class="fb" onclick="pubFilter('conference',this)">Conference</button>
-    <button class="fb" onclick="pubFilter('report',this)">Report</button>
-  </div>
+
   <div id="pubFeed"></div>
 </div>
 
@@ -859,6 +892,21 @@ const FIREBASE_CONFIG = {
   </div>
 </div>
 
+<!-- Department Manager -->
+<div class="overlay" id="deptManagerModal" onclick="if(event.target===this)closeModal('deptManagerModal')">
+  <div class="modal" style="max-width:420px">
+    <button class="modal-x" onclick="closeModal('deptManagerModal')">×</button>
+    <h3>Manage Departments</h3>
+    <p style="font-size:.83rem;color:var(--muted);margin-bottom:18px">Departments shown in the member form dropdown.</p>
+    <div id="deptList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px"></div>
+    <div style="display:flex;gap:8px">
+      <input id="newDeptInput" type="text" placeholder="New department…" style="flex:1;padding:9px 13px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.88rem;outline:none" onkeydown="if(event.key==='Enter')addDept()">
+      <button class="add-btn" onclick="addDept()">+ Add</button>
+    </div>
+    <div class="factions"><button class="btn-cancel" onclick="closeModal('deptManagerModal')">Done</button></div>
+  </div>
+</div>
+
 <!-- Password -->
 <div class="overlay" id="pwModal" onclick="if(event.target===this)closeModal('pwModal')">
   <div class="modal" style="max-width:380px">
@@ -907,7 +955,7 @@ const FIREBASE_CONFIG = {
     <div class="fr">
       <div class="fg"><label>Email *</label><input id="mfEmail" type="email" placeholder="janedoe@tamu.edu"></div>
       <div class="fg"><label>Department</label>
-        <select id="mfDept"><option value="">— None —</option><option>LAUP</option><option>ARCH</option><option>HLTH</option><option>Other</option></select>
+        <select id="mfDept"></select>
       </div>
     </div>
     <div class="fr">
@@ -1079,6 +1127,7 @@ const FIREBASE_CONFIG = {
   <div class="modal">
     <button class="modal-x" onclick="closeModal('aboutModal')">×</button>
     <h3>Edit About Page</h3>
+    <div class="fg"><label>Institution / Subtitle</label><input id="afInstitution" type="text" placeholder="Texas A&M University · College of Architecture"></div>
     <div class="fg"><label>Tagline</label><input id="afTagline" type="text"></div>
     <div class="fg"><label>Description</label><textarea id="afDesc" style="min-height:110px"></textarea></div>
     <div class="fg"><label>Mission Statement</label><textarea id="afMission" style="min-height:80px"></textarea></div>
@@ -1276,7 +1325,7 @@ const FIREBASE_CONFIG = {
     <h3 id="confirmMsg" style="font-size:1.3rem;margin-bottom:10px"></h3>
     <p id="confirmSub" style="font-size:.85rem;color:var(--muted);margin-bottom:24px">This action cannot be undone.</p>
     <div style="display:flex;gap:10px;justify-content:center">
-      <button class="btn-cancel" onclick="closeModal('confirmModal')">Cancel</button>
+      <button id="confirmCancel" class="btn-cancel" onclick="closeModal('confirmModal')">Cancel</button>
       <button class="btn-danger" id="confirmOk">Delete</button>
     </div>
   </div>
@@ -1421,6 +1470,30 @@ const PW_HASH = btoa('dral2026');
 /* ══════════════════════════════════════════════════
    FIREBASE INIT
 ══════════════════════════════════════════════════ */
+const ORCID_MAP = {
+  "Chanam Lee": "0000-0002-7849-3939",
+  "Xuemei Zhu": "0000-0001-9703-6074",
+  "Dongying Li": "0000-0002-2273-8079",
+  "Marcia Ory": "0000-0001-8036-2383",
+  "Sinan Zhong": "0000-0001-6683-0160",
+  "Sungmin Lee": "0000-0002-4529-9769",
+  "Tyler Prochnow": "0000-0001-7886-4456",
+  "Wei Li": "0000-0001-9089-9897",
+  "Yang Song": "0000-0001-6044-7881",
+  "Youngre Noh": "0000-0002-5971-4644",
+  "Zhipeng Lu": "0000-0001-5558-0362",
+  "Hanwool Lee": "0000-0002-8508-4914",
+  "Xi Chen": "0000-0002-7261-1404",
+  "Jeong In Kim": "0000-0002-9049-6390",
+  "Andong Chen": "0000-0003-3782-5500",
+  "Jiwoon Jeong": "0000-0001-7665-6784",
+  "Kitae Park": "0009-0002-7519-3655",
+  "Li Deng": "0000-0002-5639-4104",
+  "Seokyung Park": "0009-0007-6626-3216",
+  "Wenjin Wang": "0000-0002-2694-2456",
+  "Yeankyoung Hahm": "0000-0003-3112-8413"
+};
+
 const IS_CONFIGURED = FIREBASE_CONFIG.apiKey !== 'YOUR_API_KEY';
 let db, DOC_REF;
 
@@ -1647,6 +1720,7 @@ function adminToggle(){
     document.querySelectorAll('.admin-only').forEach(el=>el.style.display='none');
     document.getElementById('footerAdminBtn').style.display='none';
     document.getElementById('navMgrBtn').style.display='none';
+    document.getElementById('heroNavToggle').style.display='none';
     renderAll();
   } else {
     document.getElementById('pwInput').value='';
@@ -1669,6 +1743,7 @@ function checkPw(){
     document.querySelectorAll('.admin-only').forEach(el=>el.style.display='flex');
     document.getElementById('footerAdminBtn').style.display='block';
     document.getElementById('navMgrBtn').style.display='inline-flex';
+    document.getElementById('heroNavToggle').style.display='inline-flex';
     renderAll();
   } else {
     document.getElementById('pwErr').style.display='block';
@@ -1699,17 +1774,23 @@ function renderAbout(){
   if(!D) return;
   const a=D.about;
   document.getElementById('aboutTagline').textContent=a.tagline;
+  const instEl=document.getElementById('aboutInstitution');
+  if(instEl) instEl.textContent=a.institution||'Texas A&M University · College of Architecture';
   document.getElementById('aboutDesc2').textContent=a.description;
   document.getElementById('aboutMission').textContent=a.mission;
   document.getElementById('contactLink').href='mailto:'+a.contact;
   const li=document.getElementById('linkedinLink');
   if(a.linkedin){li.href=a.linkedin;li.style.display='inline-block';}else{li.style.display='none';}
   document.getElementById('aboutCards').innerHTML=[
-    ['🏫','Texas A&M','University'],
-    ['👥',D.members.filter(m=>m.status==='Active').length+'+','Active Members'],
-    ['🔬',D.projects.filter(p=>p.status!=='Completed').length,'Research Projects'],
-    ['📄','100+','Publications'],
-  ].map(([i,n,l])=>`<div class="acard"><div class="acard-icon">${i}</div><div class="acard-num">${n}</div><div class="acard-lbl">${l}</div></div>`).join('');
+    {icon:'🏫',num:'Texas A&M',lbl:'University',     link:'https://www.tamu.edu',        ext:true},
+    {icon:'👥',num:D.members.filter(m=>m.status==='Active').length+'+',lbl:'Active Members', page:'members'},
+    {icon:'🔬',num:D.projects.filter(p=>p.status!=='Completed').length+'+',lbl:'Research Projects',page:'projects'},
+    {icon:'📄',num:'100+',lbl:'Publications',         page:'publications'},
+  ].map(({icon,num,lbl,link,ext,page})=>{
+    const click = link ? `onclick="window.open('${link}','_blank')"` :
+                  page ? `onclick="goto('${page}',document.querySelector('.nbtn[onclick*=\'${page}\']'))"` : '';
+    return `<div class="acard" style="${link||page?'cursor:pointer':''}" ${click}><div class="acard-icon">${icon}</div><div class="acard-num">${num}</div><div class="acard-lbl">${lbl}</div></div>`;
+  }).join('');
   if(isAdmin){
     document.querySelectorAll('.admin-only').forEach(el=>el.style.display='flex');
     document.getElementById('editContactBtn').style.display='block';
@@ -1745,6 +1826,7 @@ async function addAboutPhotoFiles(input){
 function openAboutEdit(){
   _afPhotos=[...(D.aboutPhotos||[])];
   const a=D.about;
+  document.getElementById('afInstitution').value=a.institution||'Texas A&M University · College of Architecture';
   document.getElementById('afTagline').value=a.tagline;
   document.getElementById('afDesc').value=a.description;
   document.getElementById('afMission').value=a.mission;
@@ -1755,6 +1837,7 @@ function openAboutEdit(){
 }
 async function saveAbout(){
   D.about={
+    institution: document.getElementById('afInstitution').value.trim()||'Texas A&M University · College of Architecture',
     tagline:     document.getElementById('afTagline').value.trim(),
     description: document.getElementById('afDesc').value.trim(),
     mission:     document.getElementById('afMission').value.trim(),
@@ -1909,6 +1992,7 @@ function editMemberFromView(){closeModal('mViewModal');openMemberForm(_viewMembe
 function deleteMemberFromView(){closeModal('mViewModal');confirmDelete('member',_viewMemberId)}
 
 function openMemberForm(id=null){
+  populateMfDept();
   document.getElementById('mFormTitle').textContent=id?'Edit Member':'Add Member';
   document.getElementById('mfPhotoPreview').style.display='none';
   if(id){
@@ -2173,7 +2257,10 @@ function rProjects(){
         ${isAdmin?`<button class="add-btn" style="margin-top:10px;font-size:.75rem;padding:6px 14px" onclick="openProjForm(${p.id})">+ Add Team Member</button>`:''}
       </div>
       <div class="pc-foot">
-        <div class="sdot"><div class="dot ${dotCls}"></div><span>${statusTxt}</span></div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div class="sdot"><div class="dot ${dotCls}"></div><span>${statusTxt}</span></div>
+          ${(p.startYear||p.endYear)?`<div style="font-size:.73rem;color:var(--muted)">${p.startYear||'?'} – ${p.endYear||'Present'}</div>`:''}
+        </div>
         ${lnk}
       </div>
     </div>`;
@@ -2323,6 +2410,8 @@ function openRecTypeManager(){
   if(!D.aboutPhotos) D.aboutPhotos=[];
   if(!D.footer) D.footer={line1:'DrAL Lab · Design Research for Active Living · Texas A&M University', line2:'Department of Landscape Architecture & Urban Planning · College of Architecture', linkedin:''};
   if(D.heroVisible===undefined) D.heroVisible=true;
+  if(!D.pageTitles) D.pageTitles={};
+  if(!D.departments) D.departments=[...DEFAULT_DEPTS];
   renderFooter();
   applyHeroVisibility();
   applyHiddenTabs();
@@ -2453,7 +2542,13 @@ function rRec(){
     const proj=gp(r.projectId);
     const isClosed=r.status!=='Open';
     return `
-    <div class="rc ${r.urgent&&!isClosed?'urg':''} ${isClosed?'closed-pos':''}" data-recid="${r.id}">
+    <div class="rc ${r.urgent&&!isClosed?'urg':''} ${isClosed?'closed-pos':''}" data-recid="${r.id}" data-id="${r.id}" draggable="true"
+         ondragstart="dndStart(event,'rec',${r.id})"
+         ondragover="dndOver(event)"
+         ondragleave="dndLeave(event)"
+         ondrop="dndDrop(event,'rec')"
+         ondragend="dndEnd(event,'rec')">
+      <div class="drag-handle" title="Drag to reorder">⠿</div>
       ${isAdmin?`<div style="position:absolute;top:14px;right:14px;display:flex;gap:5px"><button class="ica ica-edit" onclick="openRecForm(${r.id})">✏️</button><button class="ica ica-del" onclick="confirmDelete('rec',${r.id})">🗑</button></div>`:''}
       <div class="rc-top">
         <div style="flex:1">
@@ -3259,7 +3354,8 @@ function rCalendar(){
   const firstDay=new Date(calYear,calMonth,1).getDay();
   const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
   const daysInPrev=new Date(calYear,calMonth,0).getDate();
-  const evs=getCalEvents().filter(ev=>!hiddenCalTypes.has(ev.type));
+  const _calQ=(document.getElementById('calSearch')?.value||'').toLowerCase().trim();
+  const evs=getCalEvents().filter(ev=>!hiddenCalTypes.has(ev.type)&&(!_calQ||ev.title.toLowerCase().includes(_calQ)));
 
   // Build date→events map, handling multi-day
   const evByDate={};
@@ -3305,7 +3401,7 @@ function rCalendar(){
   const now=new Date(); now.setHours(0,0,0,0);
   const seen=new Set();
   // For upcoming list, use unfiltered evs but still respect hidden types
-  const allEvs=getCalEvents();
+  const allEvs=getCalEvents().filter(ev=>!_calQ||ev.title.toLowerCase().includes(_calQ));
   const upcoming=allEvs.filter(ev=>{
     const key=ev.id;
     if(seen.has(key)) return false;
@@ -3394,9 +3490,11 @@ function openEventDetail(evEncoded){
      ${ev.desc?'<p style="margin-top:10px;font-size:.85rem;text-align:left;color:var(--text);white-space:pre-line">'+ev.desc+'</p>':''}
      ${ev.link?'<br><a href="'+ev.link+'" target="_blank" style="color:#2563eb">🔗 More info</a>':''}`;
   document.getElementById('confirmOk').style.display='none';
+  document.getElementById('confirmCancel').style.display='none';
   document.getElementById('confirmModal').classList.add('open');
   document.getElementById('confirmModal').addEventListener('click',()=>{
     document.getElementById('confirmOk').style.display='block';
+    document.getElementById('confirmCancel').style.display='block';
   },{once:true});
 }
 
@@ -3536,78 +3634,178 @@ function doSearch(q){
 /* ══════════════════════════════════════════════════
    PUBLICATIONS
 ══════════════════════════════════════════════════ */
-let pubTypeFilter='all';
-function pubFilter(f,btn){pubTypeFilter=f;document.querySelectorAll('#page-publications .fb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');rPublications();}
+let pubTypeFilter='all', pubYearFilter='all', pubAuthorFilter='all';
+
+function pubFilter(f,btn){
+  pubTypeFilter=f;
+  document.querySelectorAll('#page-publications .fbar .fb, #page-publications .fb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  rPublications();
+}
+
+function pubYearFilter_(yr,btn){
+  pubYearFilter=yr;
+  document.querySelectorAll('#pubYearFilters .pub-year-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  rPublications();
+}
+
+function pubAuthorFilter_(name,btn){
+  pubAuthorFilter=name;
+  document.querySelectorAll('#pubAuthorFilters .pub-author-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  rPublications();
+}
+
+/* ── ORCID API SYNC ── */
+async function syncOrcidPublications(){
+  const statusDiv=document.getElementById('orcidSyncStatus');
+  const dot=document.getElementById('orcidSyncDot');
+  const msg=document.getElementById('orcidSyncMsg');
+  const lastSync=document.getElementById('orcidLastSync');
+  statusDiv.style.display='flex';
+  dot.className='orcid-sync-dot syncing';
+  msg.textContent='Fetching from ORCID API…';
+
+  const orcidIds=Object.entries(ORCID_MAP); // [name, orcid]
+  let newCount=0, errorCount=0;
+  if(!D.publications) D.publications=[];
+  const existingDois=new Set(D.publications.map(p=>p.doi).filter(Boolean));
+
+  for(let [name, orcid] of orcidIds){
+    try{
+      const resp=await fetch(`https://pub.orcid.org/v3.0/${orcid}/works`,{
+        headers:{'Accept':'application/json'}
+      });
+      if(!resp.ok){ errorCount++; continue; }
+      const data=await resp.json();
+      const works=(data.group||[]);
+      for(const group of works){
+        const summary=group['work-summary']?.[0];
+        if(!summary) continue;
+        const title=summary.title?.title?.value||'';
+        if(!title) continue;
+        const year=parseInt(summary['publication-date']?.year?.value)||null;
+        const type=summary.type||'journal-article';
+        const extIds=summary['external-ids']?.['external-id']||[];
+        const doiObj=extIds.find(e=>e['external-id-type']==='doi');
+        const doi=doiObj?'https://doi.org/'+doiObj['external-id-value']:null;
+        // Skip if DOI already exists
+        if(doi&&existingDois.has(doi)) continue;
+        // Map ORCID type to our type
+        let mappedType='journal';
+        if(type.includes('conference')||type.includes('proceedings')) mappedType='conference';
+        else if(type.includes('report')||type.includes('dissertation')) mappedType='report';
+
+        const pub={
+          id:'orcid-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),
+          title,
+          authors:name, // will be enriched below
+          year,
+          type:mappedType,
+          venue:summary['journal-title']?.value||null,
+          doi,
+          pdf:null,
+          orcidSource:orcid,
+          source:'orcid',
+        };
+        D.publications.push(pub);
+        if(doi) existingDois.add(doi);
+        newCount++;
+      }
+    }catch(e){
+      console.warn('ORCID fetch error for',orcid,e);
+      errorCount++;
+    }
+    msg.textContent=`Fetching… (${orcidIds.indexOf([name,orcid])+1}/${orcidIds.length})`;
+  }
+
+  // Save and update last sync time
+  if(!D.orcidLastSync) D.orcidLastSync={};
+  D.orcidLastSync.date=new Date().toISOString();
+  D.orcidLastSync.added=newCount;
+  await saveToFirebase();
+
+  dot.className='orcid-sync-dot done';
+  msg.textContent=`Sync complete — ${newCount} new publications added${errorCount>0?' ('+errorCount+' errors)':''}`;
+  lastSync.textContent='Last synced: '+new Date().toLocaleString();
+  rPublications();
+}
+
+function showOrcidSyncStatus(){
+  if(!D||!D.orcidLastSync) return;
+  const statusDiv=document.getElementById('orcidSyncStatus');
+  const dot=document.getElementById('orcidSyncDot');
+  const msg=document.getElementById('orcidSyncMsg');
+  const lastSync=document.getElementById('orcidLastSync');
+  if(!statusDiv) return;
+  statusDiv.style.display='flex';
+  dot.className='orcid-sync-dot done';
+  msg.textContent=`${(D.publications||[]).length} publications (${(D.publications||[]).filter(p=>p.source==='orcid').length} from ORCID)`;
+  lastSync.textContent='Last synced: '+new Date(D.orcidLastSync.date).toLocaleString();
+}
 
 function rPublications(){
   if(!D) return;
-  const q=(document.getElementById('pubSearch')?.value||'').toLowerCase();
-  const pubs=[...(D.publications||[])].filter(p=>
-    (pubTypeFilter==='all'||p.type===pubTypeFilter)&&
-    (!q||p.title.toLowerCase().includes(q)||(p.authors||'').toLowerCase().includes(q)||(p.venue||'').toLowerCase().includes(q))
-  ).sort((a,b)=>(b.year||0)-(a.year||0));
+  showOrcidSyncStatus();
+  const q=(document.getElementById('pubSearch')?.value||'').toLowerCase().trim();
+  const allPubs=(D.publications||[]);
 
-  // Scholar banner
-  const banner=document.getElementById('scholarBanner');
-  if(D.scholarUrl){
-    banner.style.display='flex';
-    document.getElementById('scholarBannerLink').textContent=D.scholarUrl;
-    document.getElementById('scholarProfileLink').href=D.scholarUrl;
-  } else {
-    banner.style.display='none';
+  // Build year filter buttons
+  const years=[...new Set(allPubs.map(p=>p.year).filter(Boolean))].sort((a,b)=>b-a);
+  const yf=document.getElementById('pubYearFilters');
+  if(yf){
+    yf.innerHTML=`<button class="pub-year-btn${pubYearFilter==='all'?' on':''}" onclick="pubYearFilter_('all',this)">All</button>`
+      +years.map(y=>`<button class="pub-year-btn${pubYearFilter===y?' on':''}" onclick="pubYearFilter_(${y},this)">${y}</button>`).join('');
   }
+
+  // Build author filter buttons (lab members only)
+  const labNames=Object.keys(ORCID_MAP);
+  const af=document.getElementById('pubAuthorFilters');
+  if(af){
+    // Only show authors who have publications
+    const activeAuthors=labNames.filter(name=>allPubs.some(p=>(p.authors||'').includes(name)||(p.orcidSource&&p.orcidSource===ORCID_MAP[name])));
+    af.innerHTML=`<button class="pub-author-btn${pubAuthorFilter==='all'?' on':''}" onclick="pubAuthorFilter_('all',this)">All</button>`
+      +activeAuthors.map(n=>`<button class="pub-author-btn${pubAuthorFilter===n?' on':''}" onclick="pubAuthorFilter_('${n.replace(/'/g,"\\'")}',this)">${n.split(' ').pop()}</button>`).join('');
+  }
+
+  const pubs=allPubs.filter(p=>{
+    if(pubTypeFilter!=='all'&&p.type!==pubTypeFilter) return false;
+    if(pubYearFilter!=='all'&&p.year!==pubYearFilter) return false;
+    if(pubAuthorFilter!=='all'){
+      const orcid=ORCID_MAP[pubAuthorFilter];
+      if(!(p.authors||'').includes(pubAuthorFilter)&&p.orcidSource!==orcid) return false;
+    }
+    if(q&&!p.title.toLowerCase().includes(q)&&!(p.authors||'').toLowerCase().includes(q)&&!(p.venue||'').toLowerCase().includes(q)) return false;
+    return true;
+  }).sort((a,b)=>(b.year||0)-(a.year||0));
 
   const feed=document.getElementById('pubFeed');
   if(!pubs.length){
-    feed.innerHTML=`<div class="empty"><div class="empty-icon">📄</div><p>No publications yet. Use "+ Add Publication" or import from Google Scholar.</p></div>`;
+    feed.innerHTML='<div class="empty"><div class="empty-icon">📄</div><p>No publications found.'+(isAdmin?' Click "Sync ORCID" to fetch automatically, or "+ Add Manually".':'')+'</p></div>';
     return;
   }
   // Group by year
   const byYear={};
   pubs.forEach(p=>{const y=p.year||'No Year';if(!byYear[y])byYear[y]=[];byYear[y].push(p);});
-  const years=Object.keys(byYear).sort((a,b)=>b-a);
-  feed.innerHTML=years.map(yr=>`
+  const sortedYears=Object.keys(byYear).sort((a,b)=>b-a);
+  feed.innerHTML=sortedYears.map(yr=>`
     <div class="pub-year-group">
-      <div class="pub-year-header">${yr}</div>
+      <div class="pub-year-header">${yr} <span style="font-size:.85rem;font-weight:400;color:var(--muted)">(${byYear[yr].length})</span></div>
       ${byYear[yr].map(p=>`
         <div class="pub-card">
           ${isAdmin?`<div style="position:absolute;top:12px;right:14px;display:flex;gap:4px"><button class="ica ica-edit" onclick="openPubForm('${p.id}')">✏️</button><button class="ica ica-del" onclick="confirmDelete('pub','${p.id}')">🗑</button></div>`:''}
           <div class="pub-title">${p.title}</div>
-          <div class="pub-authors">${p.authors||''}</div>
+          <div class="pub-authors" style="color:var(--muted);font-size:.79rem;margin-bottom:3px">${p.authors||''}</div>
           <div class="pub-venue">${p.venue||''}</div>
           <div class="pub-links">
             ${p.doi?`<a class="pub-link" href="${p.doi}" target="_blank">🔗 DOI</a>`:''}
             ${p.pdf?`<a class="pub-link" href="${p.pdf}" target="_blank">📄 PDF</a>`:''}
-            <span class="pub-badge">${({journal:'Journal Article',conference:'Conference Paper',report:'Report'}[p.type])||p.type||'Article'}</span>
+            <span class="pub-badge">${({journal:'Journal',conference:'Conference',report:'Report'}[p.type])||p.type||'Article'}</span>
+            ${p.source==='orcid'?'<span class="pub-badge" style="background:#e8f5e9;color:#2e7d32">ORCID</span>':''}
           </div>
         </div>`).join('')}
     </div>`).join('');
-}
-
-function openScholarImport(){
-  document.getElementById('scholarUrlInput').value=D.scholarUrl||'';
-  document.getElementById('scholarImportStatus').textContent='';
-  openModal('scholarImportModal');
-}
-
-async function fetchScholarPublications(){
-  const url=document.getElementById('scholarUrlInput').value.trim();
-  if(!url){alert('Please enter a Google Scholar profile URL.');return;}
-  const status=document.getElementById('scholarImportStatus');
-  const btn=document.getElementById('scholarFetchBtn');
-  btn.disabled=true; btn.textContent='Fetching…';
-  status.textContent='Note: Direct Scholar scraping is blocked by CORS. Saving your Scholar URL for display. Please use "+ Add Publication" to add papers manually, or paste exported BibTeX below.';
-  status.style.color='var(--gold)';
-  // Save the URL for display purposes
-  D.scholarUrl=url;
-  await saveToFirebase();
-  btn.disabled=false; btn.textContent='Save URL';
-  btn.textContent='Fetch Publications';
-}
-
-async function refreshScholarFeed(){
-  // Display message about manual update
-  alert('Google Scholar auto-fetch is not available due to cross-origin restrictions.\n\nTo keep publications updated:\n1. Export from Scholar as BibTeX\n2. Use "+ Add Publication" to enter manually\n3. Your Scholar profile link is saved and shown to visitors.');
 }
 
 function openPubForm(id=null){
@@ -3936,8 +4134,14 @@ function openNewsCatManager(){
 function renderNewsCatList(){
   const cats=D.newsCategories||DEFAULT_NEWS_CATS;
   document.getElementById('newsCatList').innerHTML=cats.map((cat,i)=>`
-    <div style="display:flex;align-items:center;gap:6px;background:var(--green-pale);color:var(--green);padding:5px 11px;border-radius:20px;font-size:.79rem;font-weight:500">
-      ${cat}<button onclick="removeNewsCategory(${i})" style="background:none;border:none;color:inherit;cursor:pointer;font-size:.9rem;padding:0;line-height:1">×</button>
+    <div draggable="true" data-idx="${i}"
+         ondragstart="listDndStart(event,'newscat',${i})"
+         ondragover="listDndOver(event)"
+         ondragleave="listDndLeave(event)"
+         ondrop="listDndDrop(event,'newscat',${i})"
+         style="display:flex;align-items:center;gap:6px;background:var(--green-pale);color:var(--green);padding:5px 11px;border-radius:20px;font-size:.79rem;font-weight:500;cursor:grab">
+      <span style="font-size:.7rem;opacity:.5">⠿</span>${cat}
+      <button onclick="removeNewsCategory(${i})" style="background:none;border:none;color:inherit;cursor:pointer;font-size:.9rem;padding:0;line-height:1">×</button>
     </div>`).join('');
 }
 async function addNewsCategory(){
@@ -4009,10 +4213,9 @@ function dndDrop(e, type){
   const targetId  = parseInt(card.dataset.id);
   if(draggedId === targetId) return;
 
-  const arr = type==='member' ? D.members : D.projects;
+  const arr = type==='member' ? D.members : (type==='rec' ? D.recruiting : D.projects);
 
-  // Get the currently visible + ordered list from the DOM
-  const gridId = type==='member' ? 'mGrid' : 'pGrid';
+  const gridId = type==='member' ? 'mGrid' : (type==='rec' ? 'rGrid' : 'pGrid');
   const domOrder = [...document.querySelectorAll('#'+gridId+' [data-id]')]
     .map(el => parseInt(el.dataset.id));
 
@@ -4034,6 +4237,7 @@ function dndDrop(e, type){
 
   // Re-render immediately (optimistic UI)
   if(type==='member') rMembers();
+  else if(type==='rec') rRec();
   else rProjects();
 
   // Debounced save (avoid too many writes while dragging)
@@ -4053,6 +4257,61 @@ async function resetProjectOrder(){
   D.projects.forEach(p => delete p.order);
   await saveToFirebase();
   rProjects();
+}
+
+/* ── List item drag-to-reorder (tags, rec types, news cats) ── */
+let _listDndFrom=null, _listDndType=null;
+function listDndStart(e, type, idx){ _listDndFrom=idx; _listDndType=type; e.dataTransfer.effectAllowed='move'; }
+function listDndOver(e){ e.preventDefault(); e.currentTarget.style.outline='2px dashed var(--gold)'; }
+function listDndLeave(e){ e.currentTarget.style.outline=''; }
+async function listDndDrop(e, type, toIdx){
+  e.preventDefault(); e.currentTarget.style.outline='';
+  if(_listDndFrom===null||_listDndFrom===toIdx||_listDndType!==type) return;
+  const from=_listDndFrom; _listDndFrom=null;
+  let arr, rerender;
+  if(type==='tag'){ arr=D.projectTags; rerender=()=>{renderTagList();initTagFilters();} }
+  else if(type==='rectype'){ arr=D.recTypes=D.recTypes||[...DEFAULT_REC_TYPES]; rerender=renderRecTypeList; }
+  else if(type==='newscat'){ arr=D.newsCategories=D.newsCategories||[...DEFAULT_NEWS_CATS]; rerender=()=>{renderNewsCatList();buildNewsCatFilterBar();populateNfCat();} }
+  if(!arr) return;
+  const item=arr.splice(from,1)[0];
+  arr.splice(toIdx,0,item);
+  rerender();
+  await saveToFirebase();
+}
+
+/* ── Department Manager ── */
+const DEFAULT_DEPTS=['LAUP','ARCH','HLTH','Other'];
+function getDepts(){ return (D&&D.departments&&D.departments.length)?D.departments:[...DEFAULT_DEPTS]; }
+function populateMfDept(){
+  const sel=document.getElementById('mfDept'); if(!sel) return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">— None —</option>'+getDepts().map(d=>`<option${d===cur?' selected':''}>${d}</option>`).join('');
+}
+function openDeptManager(){
+  if(!D.departments) D.departments=[...DEFAULT_DEPTS];
+  renderDeptList();
+  openModal('deptManagerModal');
+}
+function renderDeptList(){
+  document.getElementById('deptList').innerHTML=(D.departments||DEFAULT_DEPTS).map((d,i)=>`
+    <div style="display:flex;align-items:center;gap:4px;background:var(--bg);padding:5px 11px;border-radius:20px;border:1.5px solid var(--border);font-size:.8rem">
+      ${d}<button onclick="removeDept(${i})" style="background:none;border:none;color:inherit;cursor:pointer;font-size:.9rem;padding:0;line-height:1">×</button>
+    </div>`).join('');
+}
+async function addDept(){
+  const v=document.getElementById('newDeptInput').value.trim(); if(!v) return;
+  if(!D.departments) D.departments=[...DEFAULT_DEPTS];
+  if(D.departments.includes(v)){alert('Already exists.');return}
+  D.departments.push(v);
+  document.getElementById('newDeptInput').value='';
+  renderDeptList(); populateMfDept();
+  await saveToFirebase();
+}
+async function removeDept(i){
+  if(!D.departments) return;
+  D.departments.splice(i,1);
+  renderDeptList(); populateMfDept();
+  await saveToFirebase();
 }
 
 /* ══════════════════════════════════════════════════
@@ -4099,10 +4358,13 @@ async function saveFooter(){
 function applyHeroVisibility(){
   const hero=document.getElementById('heroSection');
   const btn=document.getElementById('heroToggleBtn');
+  const navBtn=document.getElementById('heroNavToggle');
   if(!hero) return;
-  const visible = D.heroVisible !== false; // default true
+  const visible = D.heroVisible !== false;
   hero.style.display = visible ? '' : 'none';
-  if(btn) btn.textContent = visible ? '👁 Hide Hero' : '👁 Show Hero';
+  const lbl = visible ? '👁 Hide Hero' : '👁 Show Hero';
+  if(btn) btn.textContent = lbl;
+  if(navBtn) navBtn.textContent = lbl;
 }
 
 async function toggleHeroSection(){
