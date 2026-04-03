@@ -71,12 +71,13 @@ nav{
 .save-indicator.show{display:flex}
 
 /* ═══════════════════════════ HERO ═══════════════════════════ */
-.hero{position:relative;overflow:hidden;color:#fff;padding:80px 52px 72px;display:flex;align-items:center;justify-content:space-between;gap:48px;min-height:340px}
+.hero{position:relative;overflow:hidden;color:#fff;padding:80px 52px 72px;display:flex;align-items:center;justify-content:flex-start;gap:48px;min-height:340px}
 .hero-bg{position:absolute;inset:0;z-index:0}
 .hero-bg-layer{position:absolute;inset:0;background-size:cover;background-position:center;transition:opacity 1.4s ease;opacity:0}
 .hero-bg-layer.active{opacity:1}
 .hero-overlay{position:absolute;inset:0;background:linear-gradient(138deg,rgba(30,58,46,.82) 0%,rgba(42,85,65,.7) 55%,rgba(45,74,62,.6) 100%);z-index:1}
 .hero>*{position:relative;z-index:2}
+.hero-text{flex:1;min-width:0}
 .hero-text h1{font-family:'Cormorant Garamond',serif;font-size:3.4rem;font-weight:600;line-height:1.1}
 .hero-text h1 em{font-style:italic;color:#a5d4c4}
 .hero-text p{margin-top:16px;max-width:460px;font-size:.96rem;opacity:.9;line-height:1.75}
@@ -130,6 +131,7 @@ nav{
 .rb-f{background:var(--gold-pale);color:var(--gold)}
 .rb-p{background:var(--green-pale);color:var(--green)}
 .rb-ms{background:#fce7f3;color:#9d174d}
+.rb-ug{background:#fff7ed;color:#c2410c}
 .rb-d{background:var(--blue-pale);color:#1e40af}
 .rb-r{background:var(--purple-pale);color:#5b21b6}
 .slink{display:inline-flex;align-items:center;gap:4px;font-size:.68rem;color:#2563eb;margin-top:6px}
@@ -217,8 +219,8 @@ nav{
 .hero-gallery.has-photos{display:block}
 .hero-gallery-inner{width:100%;height:100%;overflow:hidden;position:relative}
 .hero-gallery-track{display:flex;width:100%;height:100%;will-change:transform;transition:transform .5s cubic-bezier(.4,0,.2,1)}
-.hero-gallery-slide{width:100%;min-width:100%;max-width:100%;flex:0 0 100%;height:100%;overflow:hidden}
-.hero-gallery-slide img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in;pointer-events:auto}
+.hero-gallery-slide{flex:0 0 100%;min-width:0;width:100%;height:100%;overflow:hidden;position:relative}
+.hero-gallery-slide img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in}
 .hero-gallery-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.4);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;z-index:2;transition:all .2s;backdrop-filter:blur(6px)}
 .hero-gallery-btn:hover{background:rgba(0,0,0,.7);transform:translateY(-50%) scale(1.08)}
 .hero-gallery-btn.prev{left:9px}.hero-gallery-btn.next{right:9px}
@@ -254,10 +256,10 @@ nav{
 .news-thumb{width:130px;height:110px;border-radius:9px;object-fit:cover;flex-shrink:0;border:1px solid var(--border)}
 .news-content-col{flex:1;min-width:0}
 /* ── Carousel ─────────────────────────────── */
-.carousel{position:relative;overflow:hidden;border-radius:10px;border:1px solid var(--border)}
-.carousel-track{display:flex;transition:transform .38s ease}
-.carousel-slide{min-width:100%;flex-shrink:0}
-.carousel-slide img{width:100%;display:block;object-fit:cover}
+.carousel{position:relative;overflow:hidden;border-radius:10px;border:1px solid var(--border);display:block;width:100%}
+.carousel-track{display:flex;width:100%;will-change:transform;transition:transform .4s cubic-bezier(.4,0,.2,1)}
+.carousel-slide{flex:0 0 100%;min-width:0;width:100%;overflow:hidden;position:relative}
+.carousel-slide img{width:100%;height:100%;display:block;object-fit:cover;cursor:zoom-in}
 .carousel-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.45);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:.95rem;display:flex;align-items:center;justify-content:center;z-index:2;transition:background .2s}
 .carousel-btn:hover{background:rgba(0,0,0,.7)}
 .carousel-btn.prev{left:6px}
@@ -269,7 +271,9 @@ nav{
 .news-carousel{width:150px;flex-shrink:0}
 .news-carousel .carousel-slide img{height:120px;object-fit:cover}
 /* Project carousel: square 1:1 */
-.proj-carousel .carousel-slide img{aspect-ratio:1/1;height:auto}
+.proj-carousel{border-radius:10px;overflow:hidden}
+.proj-carousel .carousel-slide{height:0;padding-bottom:66.67%;position:relative}
+.proj-carousel .carousel-slide img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;aspect-ratio:unset}
 /* Hero photo box */
 .hero-photo-box{flex-shrink:0}
 .hero-photo-box img{width:210px;height:210px;object-fit:cover;border-radius:14px;border:3px solid rgba(255,255,255,.2);box-shadow:0 8px 32px rgba(0,0,0,.3)}
@@ -353,6 +357,71 @@ nav{
 footer{background:var(--green);color:rgba(255,255,255,.6);padding:36px 52px;font-size:.8rem;text-align:center;margin-top:80px}
 footer strong{color:rgba(255,255,255,.9)}
 
+/* ── DARK MODE ── */
+body.dark{--bg:#0f1a16;--white:#1a2820;--text:#e8ece9;--muted:#8fa89a;--border:#2a3d34;--green-pale:#162820;--gold-pale:#2a2010;--blue-pale:#0f1e30;--purple-pale:#1a1530;--red-pale:#2a1010}
+body.dark nav{background:#0f1a16}
+body.dark .hero-overlay{background:linear-gradient(138deg,rgba(10,28,20,.9) 0%,rgba(20,50,36,.8) 55%,rgba(30,58,46,.7) 100%)}
+body.dark .config-box{background:#1a2820;color:var(--text)}
+body.dark .modal{background:#1a2820}
+body.dark .fbar input{background:var(--white);color:var(--text)}
+body.dark .fg input,.dark .fg select,.dark .fg textarea{background:var(--white);color:var(--text)}
+
+/* ── SEARCH ── */
+.search-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:600;align-items:flex-start;justify-content:center;padding-top:100px}
+.search-overlay.open{display:flex}
+.search-box{background:var(--white);border-radius:16px;width:94%;max-width:640px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.search-input-row{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border)}
+.search-input-row input{flex:1;border:none;outline:none;font-size:1.1rem;font-family:inherit;background:transparent;color:var(--text)}
+.search-results{max-height:60vh;overflow-y:auto}
+.sr-item{padding:14px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s;display:flex;align-items:flex-start;gap:12px}
+.sr-item:hover{background:var(--bg)}
+.sr-item:last-child{border-bottom:none}
+.sr-type{font-size:.68rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:2px 8px;border-radius:8px;white-space:nowrap;flex-shrink:0;margin-top:2px}
+.sr-title{font-weight:500;font-size:.92rem}
+.sr-sub{font-size:.79rem;color:var(--muted);margin-top:2px}
+.sr-empty{padding:40px 20px;text-align:center;color:var(--muted);font-size:.9rem}
+
+/* ── PUBLICATIONS ── */
+.pub-year-group{margin-bottom:36px}
+.pub-year-header{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:600;color:var(--green);border-bottom:2px solid var(--gold);padding-bottom:8px;margin-bottom:16px}
+.pub-card{background:var(--white);border-radius:12px;border:1px solid var(--border);padding:20px 24px;margin-bottom:12px;transition:box-shadow .2s;position:relative}
+.pub-card:hover{box-shadow:0 6px 24px rgba(0,0,0,.09)}
+.pub-title{font-weight:600;font-size:.95rem;margin-bottom:5px;line-height:1.4}
+.pub-authors{font-size:.8rem;color:var(--muted);margin-bottom:5px}
+.pub-venue{font-size:.8rem;color:var(--green-l);font-style:italic;margin-bottom:9px}
+.pub-links{display:flex;flex-wrap:wrap;gap:6px}
+.pub-link{display:inline-flex;align-items:center;gap:4px;padding:3px 11px;border-radius:10px;font-size:.72rem;font-weight:500;border:1px solid var(--border);color:var(--muted);text-decoration:none;transition:all .2s}
+.pub-link:hover{border-color:var(--green);color:var(--green)}
+.pub-badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:.68rem;font-weight:600;background:#dbeafe;color:#1e40af}
+.scholar-banner{background:var(--green);color:#fff;border-radius:12px;padding:20px 24px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.scholar-banner a{background:rgba(255,255,255,.2);color:#fff;padding:8px 18px;border-radius:8px;font-size:.85rem;border:1px solid rgba(255,255,255,.3);text-decoration:none;transition:all .2s}
+.scholar-banner a:hover{background:rgba(255,255,255,.3)}
+
+/* ── RESOURCES ── */
+.res-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+.res-card{background:var(--white);border-radius:14px;border:1px solid var(--border);padding:24px;transition:transform .2s,box-shadow .2s;position:relative}
+.res-card:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.1)}
+.res-icon{font-size:2rem;margin-bottom:10px}
+.res-title{font-weight:600;font-size:.96rem;margin-bottom:6px}
+.res-desc{font-size:.82rem;color:var(--muted);line-height:1.6;margin-bottom:14px}
+.res-tags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px}
+.res-tag{padding:2px 8px;border-radius:6px;font-size:.68rem;background:var(--bg);border:1px solid var(--border);color:var(--muted)}
+.res-link{display:inline-flex;align-items:center;gap:5px;font-size:.79rem;color:var(--green);font-weight:500;text-decoration:none}
+.res-link:hover{text-decoration:underline}
+.res-cat-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+
+/* ── ANALYTICS ── */
+.analytics-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px;margin-bottom:32px}
+.stat-card{background:var(--white);border-radius:14px;border:1px solid var(--border);padding:24px;text-align:center}
+.stat-card-n{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:600;color:var(--green);line-height:1}
+.stat-card-l{font-size:.8rem;color:var(--muted);margin-top:5px;text-transform:uppercase;letter-spacing:.07em}
+.bar-chart{background:var(--white);border-radius:14px;border:1px solid var(--border);padding:24px;margin-bottom:18px}
+.bar-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.bar-label{font-size:.79rem;color:var(--text);min-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;background:var(--bg);border-radius:4px;height:20px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .6s ease;background:var(--green)}
+.bar-val{font-size:.79rem;font-weight:600;color:var(--green);min-width:30px;text-align:right}
+
 @media(max-width:900px){
   .nav-center{gap:0}.nbtn{padding:8px 10px;font-size:.78rem}
 }
@@ -364,10 +433,13 @@ footer strong{color:rgba(255,255,255,.9)}
   .nbtn{padding:7px 9px;font-size:.75rem;white-space:nowrap}
   .nav-right{flex-shrink:0}
   .admin-btn{padding:4px 9px;font-size:.7rem}
-  .hero{flex-direction:column;padding:48px 20px 60px;gap:28px;min-height:unset}
+  .hero{flex-direction:column;padding:48px 20px 60px;gap:28px;min-height:unset;align-items:flex-start}
   .hero-text h1{font-size:2rem}
+  .hero-text p{max-width:100%}
   .stat-n{font-size:2.6rem}
-  .hero-stats{gap:28px;justify-content:center}
+  .hero-stats{gap:28px;justify-content:flex-start}
+  .hero>div:last-of-type{width:100%;align-self:stretch}
+  #heroGallery{width:100%!important;height:220px!important}
   .page{padding:28px 16px}
   .pgrid{grid-template-columns:1fr}
   .fr{grid-template-columns:1fr}
@@ -427,8 +499,13 @@ const FIREBASE_CONFIG = {
     <button class="nbtn" onclick="goto('recruiting',this)">Recruiting</button>
     <button class="nbtn" onclick="goto('news',this)">News</button>
     <button class="nbtn" onclick="goto('calendar',this)">Calendar</button>
+    <button class="nbtn" onclick="goto('publications',this)">Publications</button>
+    <button class="nbtn" onclick="goto('resources',this)">Resources</button>
+    <button class="nbtn admin-only hidden" id="analyticsNavBtn" onclick="goto('analytics',this)" style="display:none">📊 Analytics</button>
   </div>
   <div class="nav-right">
+    <button class="nbtn" onclick="openSearch()" title="Search" style="font-size:1rem;padding:6px 10px">🔍</button>
+    <button id="darkToggle" class="nbtn" onclick="toggleDark()" title="Dark Mode" style="font-size:1rem;padding:6px 10px">🌙</button>
     <div class="save-indicator" id="saveIndicator">✓ Saved</div>
     <button class="admin-btn" id="adminBtn" onclick="adminToggle()">
       <span id="adminIcon">🔒</span><span id="adminLabel">Admin</span>
@@ -590,6 +667,78 @@ const FIREBASE_CONFIG = {
   </div>
 </div>
 
+<!-- PUBLICATIONS -->
+<div id="page-publications" class="page">
+  <div class="sh-row sh">
+    <div><h2>Publications</h2><div class="sh-line"></div><p>Peer-reviewed articles, conference papers, and reports from DrAL Lab.</p></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button id="pubExportBtn" onclick="exportIcs('pubs')" style="background:none;border:1.5px solid var(--border);padding:8px 16px;border-radius:8px;font-size:.82rem;cursor:pointer;display:flex;align-items:center;gap:6px">📅 Export .ics</button>
+    </div>
+  </div>
+  <div class="admin-bar" id="pubAdminBar">
+    <span>🟢 Admin Mode — Add publications manually, or paste a Google Scholar URL below to fetch automatically.</span>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="add-btn" style="background:#0369a1" onclick="openScholarImport()">🎓 Import from Scholar</button>
+      <button class="add-btn" onclick="openPubForm()">+ Add Publication</button>
+    </div>
+  </div>
+  <div id="scholarBanner" class="scholar-banner" style="display:none">
+    <div>
+      <div style="font-weight:600;font-size:1rem;margin-bottom:4px">Google Scholar Profile Linked</div>
+      <div id="scholarBannerLink" style="opacity:.8;font-size:.85rem"></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <a id="scholarProfileLink" href="#" target="_blank">View on Scholar →</a>
+      <button onclick="refreshScholarFeed()" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);padding:8px 14px;border-radius:8px;font-size:.82rem;cursor:pointer">↻ Refresh</button>
+    </div>
+  </div>
+  <div class="fbar" style="margin-bottom:28px">
+    <input type="text" id="pubSearch" placeholder="Search publications…" oninput="rPublications()">
+    <button class="fb on" onclick="pubFilter('all',this)">All</button>
+    <button class="fb" onclick="pubFilter('journal',this)">Journal</button>
+    <button class="fb" onclick="pubFilter('conference',this)">Conference</button>
+    <button class="fb" onclick="pubFilter('report',this)">Report</button>
+  </div>
+  <div id="pubFeed"></div>
+</div>
+
+<!-- RESOURCES -->
+<div id="page-resources" class="page">
+  <div class="sh-row sh">
+    <div><h2>Lab Resources</h2><div class="sh-line"></div><p>Datasets, tools, code, and documents from DrAL research.</p></div>
+  </div>
+  <div class="admin-bar" id="resAdminBar">
+    <span>🟢 Admin Mode — Add or edit resources.</span>
+    <button class="add-btn" onclick="openResForm()">+ Add Resource</button>
+  </div>
+  <div class="res-cat-tabs" id="resCatTabs"></div>
+  <div class="res-grid" id="resGrid"></div>
+</div>
+
+<!-- ANALYTICS (Admin only) -->
+<div id="page-analytics" class="page">
+  <div class="sh-row sh">
+    <div><h2>Lab Analytics</h2><div class="sh-line"></div><p>Overview of lab activity, membership, and research.</p></div>
+    <div style="display:flex;gap:8px">
+      <button onclick="exportIcs('all')" style="background:none;border:1.5px solid var(--border);padding:8px 16px;border-radius:8px;font-size:.82rem;cursor:pointer">📅 Export All Events (.ics)</button>
+    </div>
+  </div>
+  <div class="analytics-grid" id="analyticsStats"></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;flex-wrap:wrap" id="analyticsCharts"></div>
+</div>
+
+<!-- SEARCH OVERLAY -->
+<div class="search-overlay" id="searchOverlay" onclick="if(event.target===this)closeSearch()">
+  <div class="search-box">
+    <div class="search-input-row">
+      <span style="font-size:1.2rem;color:var(--muted)">🔍</span>
+      <input id="searchInput" type="text" placeholder="Search members, projects, news…" oninput="doSearch(this.value)" autocomplete="off">
+      <button onclick="closeSearch()" style="background:none;border:none;font-size:1.4rem;color:var(--muted);cursor:pointer">×</button>
+    </div>
+    <div class="search-results" id="searchResults"><div class="sr-empty">Type to search…</div></div>
+  </div>
+</div>
+
 <footer>
   <strong>DrAL Lab</strong> · Design Research for Active Living · Texas A&M University<br>
   <span style="margin-top:5px;display:block">Department of Landscape Architecture & Urban Planning · College of Architecture</span>
@@ -651,7 +800,7 @@ const FIREBASE_CONFIG = {
     </div>
     <div class="fr">
       <div class="fg"><label>Advisor</label><input id="mfAdvisor" type="text" placeholder="Chanam Lee"></div>
-      <div class="fg"><label>Status</label><select id="mfStatus"><option>Active</option><option>Former</option><option>Visiting</option></select></div>
+      <div class="fg"><label>Status</label><select id="mfStatus"><option>Active</option><option>Former</option></select></div>
     </div>
     <div class="fg"><label>Special Label <span style="font-weight:400;color:var(--muted)">(e.g. PI, Lab Manager — leave blank for none)</span></label>
       <input id="mfSubRole" type="text" placeholder="PI / Lab Manager / …">
@@ -976,6 +1125,81 @@ const FIREBASE_CONFIG = {
   </div>
 </div>
 
+<!-- Scholar Import Modal -->
+<div class="overlay" id="scholarImportModal" onclick="if(event.target===this)closeModal('scholarImportModal')">
+  <div class="modal" style="max-width:500px">
+    <button class="modal-x" onclick="closeModal('scholarImportModal')">×</button>
+    <h3>Import from Google Scholar</h3>
+    <p style="font-size:.84rem;color:var(--muted);margin-bottom:18px">Paste a Google Scholar profile URL. Publications will be parsed and added automatically.</p>
+    <div class="fg"><label>Google Scholar Profile URL</label>
+      <input id="scholarUrlInput" type="url" placeholder="https://scholar.google.com/citations?user=XXXXX">
+    </div>
+    <div id="scholarImportStatus" style="font-size:.83rem;margin-top:8px;color:var(--muted)"></div>
+    <div class="factions">
+      <button class="btn-cancel" onclick="closeModal('scholarImportModal')">Cancel</button>
+      <button class="btn-save" id="scholarFetchBtn" onclick="fetchScholarPublications()">Fetch Publications</button>
+    </div>
+  </div>
+</div>
+
+<!-- Publication Form -->
+<div class="overlay" id="pubFormModal" onclick="if(event.target===this)closeModal('pubFormModal')">
+  <div class="modal wide">
+    <button class="modal-x" onclick="closeModal('pubFormModal')">×</button>
+    <h3 id="pubFormTitle">Add Publication</h3>
+    <input type="hidden" id="pfPubId">
+    <div class="fg"><label>Title *</label><input id="pfPubTitle" type="text"></div>
+    <div class="fg"><label>Authors</label><input id="pfPubAuthors" type="text" placeholder="Lee C., Smith J., …"></div>
+    <div class="fr">
+      <div class="fg"><label>Year</label><input id="pfPubYear" type="number" placeholder="2024" min="1990" max="2030"></div>
+      <div class="fg"><label>Type</label>
+        <select id="pfPubType"><option value="journal">Journal Article</option><option value="conference">Conference Paper</option><option value="report">Report/Other</option></select>
+      </div>
+    </div>
+    <div class="fg"><label>Venue / Journal</label><input id="pfPubVenue" type="text" placeholder="Journal of Planning Education and Research"></div>
+    <div class="fr">
+      <div class="fg"><label>DOI / URL</label><input id="pfPubDoi" type="url" placeholder="https://doi.org/…"></div>
+      <div class="fg"><label>PDF URL</label><input id="pfPubPdf" type="url" placeholder="https://…"></div>
+    </div>
+    <div class="fg"><label>Abstract</label><textarea id="pfPubAbstract" style="min-height:80px"></textarea></div>
+    <div class="factions">
+      <button class="btn-cancel" onclick="closeModal('pubFormModal')">Cancel</button>
+      <button class="btn-save" id="pfPubSaveBtn" onclick="savePub()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Resource Form -->
+<div class="overlay" id="resFormModal" onclick="if(event.target===this)closeModal('resFormModal')">
+  <div class="modal">
+    <button class="modal-x" onclick="closeModal('resFormModal')">×</button>
+    <h3 id="resFormTitle">Add Resource</h3>
+    <input type="hidden" id="rfResId">
+    <div class="fg"><label>Title *</label><input id="rfResTitle" type="text"></div>
+    <div class="fg"><label>Description</label><textarea id="rfResDesc" style="min-height:70px"></textarea></div>
+    <div class="fr">
+      <div class="fg"><label>Category</label>
+        <select id="rfResCat">
+          <option value="dataset">Dataset</option>
+          <option value="tool">Tool / Software</option>
+          <option value="code">Code / GitHub</option>
+          <option value="report">Report / Document</option>
+          <option value="protocol">Protocol / Method</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="fg"><label>Icon (emoji)</label><input id="rfResIcon" type="text" placeholder="📁" maxlength="4"></div>
+    </div>
+    <div class="fg"><label>Link URL</label><input id="rfResLink" type="url" placeholder="https://…"></div>
+    <div class="fg"><label>Tags (comma-separated)</label><input id="rfResTags" type="text" placeholder="GIS, Health, Aging"></div>
+    <div class="fg"><label>Project (optional)</label><select id="rfResProject"></select></div>
+    <div class="factions">
+      <button class="btn-cancel" onclick="closeModal('resFormModal')">Cancel</button>
+      <button class="btn-save" id="rfResSaveBtn" onclick="saveResource()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Lightbox -->
 <div class="lightbox" id="lightboxModal" onclick="closeLightbox()">
   <button class="lightbox-close" onclick="closeLightbox()">×</button>
@@ -1053,9 +1277,9 @@ const ini  = n => n.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
 const gm   = id => D.members.find(m=>m.id===id);
 const gp   = id => D.projects.find(p=>p.id===id);
 const fmt  = s => s ? new Date(s+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : 'Open';
-const rb   = r => ({'Faculty':'rb-f','PhD Student':'rb-p','Master Student':'rb-ms','Undergraduate Student':'rb-ms','Post Doc':'rb-d','Researcher':'rb-r','Visiting Scholar':'rb-d'}[r]||'rb-p');
+const rb   = r => ({'Faculty':'rb-f','PhD Student':'rb-p','Master Student':'rb-ms','Undergraduate Student':'rb-ug','Post Doc':'rb-d','Researcher':'rb-r','Visiting Scholar':'rb-d'}[r]||'rb-p');
 /* Sort order: PI > Faculty > Researcher > PostDoc > PhD > Master > Undergraduate (alpha within) */
-const ROLE_ORDER = {'Faculty':0,'Researcher':1,'Post Doc':2,'Visiting Scholar':2,'PhD Student':3,'Master Student':4,'Undergraduate Student':5};
+const ROLE_ORDER = {'Faculty':0,'Researcher':1,'Post Doc':2,'Visiting Scholar':2.5,'PhD Student':3,'Master Student':4,'Undergraduate Student':5};
 function memberSortKey(m){
   const isPi = (m.subRole||'').toLowerCase().includes('pi');
   const tier = isPi ? -1 : (ROLE_ORDER[m.role]??6);
@@ -1153,6 +1377,9 @@ function goto(name, btn) {
   if(name==='recruiting'){ initRecTypeFilters(); rRec(); }
   if(name==='news')     rNews();
   if(name==='calendar') rCalendar();
+  if(name==='publications') rPublications();
+  if(name==='resources') rResources();
+  if(name==='analytics') rAnalytics();
 }
 
 /* ══════════════════════════════════════════════════
@@ -1167,6 +1394,7 @@ function adminToggle(){
     document.getElementById('adminLabel').textContent='Admin';
     document.querySelectorAll('.admin-bar').forEach(b=>b.classList.remove('show'));
     document.querySelectorAll('.admin-only').forEach(el=>el.style.display='none');
+    document.getElementById('analyticsNavBtn')?.classList.add('hidden');
     renderAll();
   } else {
     document.getElementById('pwInput').value='';
@@ -1187,6 +1415,7 @@ function checkPw(){
     document.getElementById('adminLabel').textContent='Admin ON';
     document.querySelectorAll('.admin-bar').forEach(b=>b.classList.add('show'));
     document.querySelectorAll('.admin-only').forEach(el=>el.style.display='flex');
+    document.getElementById('analyticsNavBtn')?.classList.remove('hidden');
     renderAll();
   } else {
     document.getElementById('pwErr').style.display='block';
@@ -1522,7 +1751,7 @@ function rProjects(){
       <div class="pc-head">
         <div class="tags">${tags}</div>
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-          <div style="flex:1">
+          <div style="flex:1;min-width:0;overflow:hidden">
             ${(()=>{const photos=[...(p.photos||[]),...(p.photoUrl&&!p.photos?[p.photoUrl]:[])].filter(Boolean);return photos.length?buildCarousel(photos,'p'+p.id,'proj-carousel'):'';})()}
             <div class="pc-title" style="margin-top:${(()=>{const photos=[...(p.photos||[]),...(p.photoUrl&&!p.photos?[p.photoUrl]:[])].filter(Boolean);return photos.length?'10px':'0'})()}">${p.title}</div>
           </div>
@@ -1675,6 +1904,8 @@ function openRecTypeManager(){
   if(!D.recTypes) D.recTypes=[...DEFAULT_REC_TYPES];
   if(!D.events) D.events=[];
   if(!D.calEventTypes) D.calEventTypes=[...DEFAULT_EV_TYPES];
+  if(!D.publications) D.publications=[];
+  if(!D.resources) D.resources=[];
   renderRecTypeList();
   openModal('recTypeModal');
 }
@@ -1690,6 +1921,8 @@ async function addRecType(){
   if(!D.recTypes) D.recTypes=[...DEFAULT_REC_TYPES];
   if(!D.events) D.events=[];
   if(!D.calEventTypes) D.calEventTypes=[...DEFAULT_EV_TYPES];
+  if(!D.publications) D.publications=[];
+  if(!D.resources) D.resources=[];
   if(D.recTypes.includes(v)){alert('Type already exists.');return}
   D.recTypes.push(v);
   document.getElementById('newRecTypeInput').value='';
@@ -1911,9 +2144,12 @@ function carStep(id,dir){
 function carGo(id,idx){
   const el=document.getElementById(id); if(!el) return;
   const slides=el.querySelectorAll('.carousel-slide');
+  if(!slides.length) return;
   idx=(idx+slides.length)%slides.length;
   el.dataset.idx=idx;
-  el.querySelector('.carousel-track').style.transform=`translateX(-${idx*100}%)`;
+  // Pixel-based transform: use container width for exact alignment
+  const w=el.getBoundingClientRect().width||el.offsetWidth;
+  el.querySelector('.carousel-track').style.transform=`translateX(${-idx*w}px)`;
   el.querySelectorAll('.carousel-dot').forEach((d,i)=>d.classList.toggle('on',i===idx));
 }
 
@@ -1959,11 +2195,11 @@ function initHeroGallery(){
   gallery.classList.add('has-photos');
   const photosCopy=[...photos];
   const n=photosCopy.length;
-  // Each slide = 100% of container width; track = n * 100%
-  track.style.width=(n*100)+'%';
+  // Use CSS flex with 100% slides — pixel transform handles navigation
+  track.style.width='';
   track.style.transform='translateX(0)';
   track.innerHTML=photosCopy.map((p,i)=>{
-    return `<div class="hero-gallery-slide" style="width:${100/n}%"><img src="${p}" alt="Lab" loading="lazy" onclick="openLightbox(JSON.parse(decodeURIComponent(this.dataset.photos)),${i})" data-photos="${encodeURIComponent(JSON.stringify(photosCopy))}"></div>`;
+    return `<div class="hero-gallery-slide"><img src="${p}" alt="Lab" loading="lazy" onclick="openLightbox(JSON.parse(decodeURIComponent(this.dataset.photos)),${i})" data-photos="${encodeURIComponent(JSON.stringify(photosCopy))}"></div>`;
   }).join('');
   dots.innerHTML=n>1?photosCopy.map((_,i)=>`<button class="hero-gallery-dot${i===0?' on':''}" onclick="heroGalleryGo(${i})"></button>`).join(''):'';
   _heroGalleryIdx=0;
@@ -1976,12 +2212,14 @@ function initHeroGallery(){
 function heroGalleryGo(idx){
   const photos=getHeroGalleryPhotos();
   if(!photos.length) return;
+  const inner=document.getElementById('heroGalleryInner');
   const track=document.getElementById('heroGalleryTrack');
-  if(!track) return;
+  if(!track||!inner) return;
   const n=photos.length;
   _heroGalleryIdx=(idx+n)%n;
-  // Each slide is (100/n)% of track; shift by slide index
-  track.style.transform=`translateX(-${_heroGalleryIdx*(100/n)}%)`;
+  // Pixel-based: use inner container width for exact, no-bleed navigation
+  const w=inner.getBoundingClientRect().width||inner.offsetWidth||300;
+  track.style.transform=`translateX(${-_heroGalleryIdx*w}px)`;
   document.querySelectorAll('.hero-gallery-dot').forEach((d,i)=>d.classList.toggle('on',i===_heroGalleryIdx));
   const cnt=document.getElementById('heroGalleryCount');
   if(cnt){cnt.textContent=n>1?`${_heroGalleryIdx+1}/${n}`:'';cnt.style.display=n>1?'block':'none';}
@@ -2148,7 +2386,7 @@ async function saveNews(){
    DELETE CONFIRM
 ══════════════════════════════════════════════════ */
 function confirmDelete(type,id){
-  const labels={member:'member',project:'project',rec:'posting',news:'news item',event:'event'};
+  const labels={member:'member',project:'project',rec:'posting',news:'news item',event:'event',pub:'publication',res:'resource'};
   document.getElementById('confirmMsg').textContent=`Delete this ${labels[type]}?`;
   document.getElementById('confirmOk').onclick=async()=>{
     if(type==='member'){
@@ -2162,6 +2400,10 @@ function confirmDelete(type,id){
       D.news=D.news.filter(n=>n.id!==id);
     } else if(type==='event'){
       D.events=(D.events||[]).filter(e=>e.id!==id&&e.parentId!==id);
+    } else if(type==='pub'){
+      D.publications=(D.publications||[]).filter(p=>p.id!==id);
+    } else if(type==='res'){
+      D.resources=(D.resources||[]).filter(r=>r.id!==id);
     }
     await saveToFirebase();
     closeModal('confirmModal');
@@ -2180,6 +2422,8 @@ function renderAll(){
   if(!D.recTypes) D.recTypes=[...DEFAULT_REC_TYPES];
   if(!D.events) D.events=[];
   if(!D.calEventTypes) D.calEventTypes=[...DEFAULT_EV_TYPES];
+  if(!D.publications) D.publications=[];
+  if(!D.resources) D.resources=[];
   // Apply saved hero colors + photo
   const s=D.heroBgSettings||{};
   applyHeroTextColor(s.textColor||'#ffffff');
@@ -2192,6 +2436,9 @@ function renderAll(){
   if(active==='news') rNews();
   if(active==='about') renderAbout();
   if(active==='calendar') rCalendar();
+  if(active==='publications') rPublications();
+  if(active==='resources') rResources();
+  if(active==='analytics'&&isAdmin) rAnalytics();
 }
 
 /* ══════════════════════════════════════════════════
@@ -2383,6 +2630,8 @@ function renderCalLegend(){
 /* ── Event Type Manager ── */
 function openEvTypeManager(){
   if(!D.calEventTypes) D.calEventTypes=[...DEFAULT_EV_TYPES];
+  if(!D.publications) D.publications=[];
+  if(!D.resources) D.resources=[];
   renderEvTypeList();
   openModal('evTypeManagerModal');
 }
@@ -2403,6 +2652,8 @@ async function addEvType(){
   const color=document.getElementById('newEvTypeColor').value;
   if(!id||!label){alert('ID and label are required.');return}
   if(!D.calEventTypes) D.calEventTypes=[...DEFAULT_EV_TYPES];
+  if(!D.publications) D.publications=[];
+  if(!D.resources) D.resources=[];
   if(D.calEventTypes.find(t=>t.id===id)){alert('Type ID already exists.');return}
   // Derive lighter bg color (mix with white)
   const r=parseInt(color.slice(1,3),16),g=parseInt(color.slice(3,5),16),b=parseInt(color.slice(5,7),16);
@@ -2629,6 +2880,356 @@ async function saveEvent(){
 }
 
 /* ══════════════════════════════════════════════════
+   DARK MODE
+══════════════════════════════════════════════════ */
+function toggleDark(){
+  document.body.classList.toggle('dark');
+  const isDark=document.body.classList.contains('dark');
+  document.getElementById('darkToggle').textContent=isDark?'☀️':'🌙';
+  try{localStorage.setItem('dral-dark',isDark?'1':'');}catch(e){}
+}
+(function initDark(){
+  try{if(localStorage.getItem('dral-dark'))document.body.classList.add('dark');}catch(e){}
+})();
+
+/* ══════════════════════════════════════════════════
+   SEARCH
+══════════════════════════════════════════════════ */
+function openSearch(){
+  document.getElementById('searchOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('searchInput').focus(),80);
+}
+function closeSearch(){
+  document.getElementById('searchOverlay').classList.remove('open');
+  document.getElementById('searchInput').value='';
+  document.getElementById('searchResults').innerHTML='<div class="sr-empty">Type to search…</div>';
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') closeSearch();
+  if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();openSearch();}
+});
+function doSearch(q){
+  q=q.trim().toLowerCase();
+  const res=document.getElementById('searchResults');
+  if(!q||!D){res.innerHTML='<div class="sr-empty">Type to search…</div>';return;}
+  const hits=[];
+  // Members
+  D.members.filter(m=>m.name.toLowerCase().includes(q)||(m.email||'').toLowerCase().includes(q)||(m.role||'').toLowerCase().includes(q)).forEach(m=>{
+    hits.push({type:'Member',typeColor:'#dcfce7',typeText:'#166534',title:m.name,sub:m.role+(m.dept?' · '+m.dept:''),action:()=>{closeSearch();goto('members',document.querySelector('.nbtn[onclick*="members"]'));setTimeout(()=>openMemberView(m.id),300);}});
+  });
+  // Projects
+  D.projects.filter(p=>p.title.toLowerCase().includes(q)||(p.desc||'').toLowerCase().includes(q)).forEach(p=>{
+    hits.push({type:'Project',typeColor:'#dbeafe',typeText:'#1e40af',title:p.title,sub:p.status,action:()=>{closeSearch();goto('projects',document.querySelector('.nbtn[onclick*="projects"]'));}});
+  });
+  // News
+  D.news.filter(n=>n.title.toLowerCase().includes(q)||(n.content||'').toLowerCase().includes(q)).forEach(n=>{
+    hits.push({type:'News',typeColor:'#fef3c7',typeText:'#92400e',title:n.title,sub:n.date+' · '+n.category,action:()=>{closeSearch();goto('news',document.querySelector('.nbtn[onclick*="news"]'));}});
+  });
+  // Publications
+  (D.publications||[]).filter(p=>p.title.toLowerCase().includes(q)||(p.authors||'').toLowerCase().includes(q)).forEach(p=>{
+    hits.push({type:'Publication',typeColor:'#ede9fe',typeText:'#5b21b6',title:p.title,sub:(p.year||'')+(p.venue?' · '+p.venue:''),action:()=>{closeSearch();goto('publications',document.querySelector('.nbtn[onclick*="publications"]'));}});
+  });
+  // Recruiting
+  D.recruiting.filter(r=>r.title.toLowerCase().includes(q)||(r.desc||'').toLowerCase().includes(q)).forEach(r=>{
+    hits.push({type:'Position',typeColor:'#fee2e2',typeText:'#991b1b',title:r.title,sub:r.type+' · '+r.status,action:()=>{closeSearch();goto('recruiting',document.querySelector('.nbtn[onclick*="recruiting"]'));}});
+  });
+  if(!hits.length){res.innerHTML='<div class="sr-empty">No results for "'+q+'"</div>';return;}
+  res.innerHTML=hits.slice(0,12).map((h,i)=>`
+    <div class="sr-item" onclick="window._searchHits[${i}].action()">
+      <span class="sr-type" style="background:${h.typeColor};color:${h.typeText}">${h.type}</span>
+      <div><div class="sr-title">${h.title}</div><div class="sr-sub">${h.sub}</div></div>
+    </div>`).join('');
+  window._searchHits=hits;
+}
+
+/* ══════════════════════════════════════════════════
+   PUBLICATIONS
+══════════════════════════════════════════════════ */
+let pubTypeFilter='all';
+function pubFilter(f,btn){pubTypeFilter=f;document.querySelectorAll('#page-publications .fb').forEach(b=>b.classList.remove('on'));btn.classList.add('on');rPublications();}
+
+function rPublications(){
+  if(!D) return;
+  const q=(document.getElementById('pubSearch')?.value||'').toLowerCase();
+  const pubs=[...(D.publications||[])].filter(p=>
+    (pubTypeFilter==='all'||p.type===pubTypeFilter)&&
+    (!q||p.title.toLowerCase().includes(q)||(p.authors||'').toLowerCase().includes(q)||(p.venue||'').toLowerCase().includes(q))
+  ).sort((a,b)=>(b.year||0)-(a.year||0));
+
+  // Scholar banner
+  const banner=document.getElementById('scholarBanner');
+  if(D.scholarUrl){
+    banner.style.display='flex';
+    document.getElementById('scholarBannerLink').textContent=D.scholarUrl;
+    document.getElementById('scholarProfileLink').href=D.scholarUrl;
+  } else {
+    banner.style.display='none';
+  }
+
+  const feed=document.getElementById('pubFeed');
+  if(!pubs.length){
+    feed.innerHTML=`<div class="empty"><div class="empty-icon">📄</div><p>No publications yet. Use "+ Add Publication" or import from Google Scholar.</p></div>`;
+    return;
+  }
+  // Group by year
+  const byYear={};
+  pubs.forEach(p=>{const y=p.year||'No Year';if(!byYear[y])byYear[y]=[];byYear[y].push(p);});
+  const years=Object.keys(byYear).sort((a,b)=>b-a);
+  feed.innerHTML=years.map(yr=>`
+    <div class="pub-year-group">
+      <div class="pub-year-header">${yr}</div>
+      ${byYear[yr].map(p=>`
+        <div class="pub-card">
+          ${isAdmin?`<div style="position:absolute;top:12px;right:14px;display:flex;gap:4px"><button class="ica ica-edit" onclick="openPubForm('${p.id}')">✏️</button><button class="ica ica-del" onclick="confirmDelete('pub','${p.id}')">🗑</button></div>`:''}
+          <div class="pub-title">${p.title}</div>
+          <div class="pub-authors">${p.authors||''}</div>
+          <div class="pub-venue">${p.venue||''}</div>
+          <div class="pub-links">
+            ${p.doi?`<a class="pub-link" href="${p.doi}" target="_blank">🔗 DOI</a>`:''}
+            ${p.pdf?`<a class="pub-link" href="${p.pdf}" target="_blank">📄 PDF</a>`:''}
+            <span class="pub-badge">${({journal:'Journal Article',conference:'Conference Paper',report:'Report'}[p.type])||p.type||'Article'}</span>
+          </div>
+        </div>`).join('')}
+    </div>`).join('');
+}
+
+function openScholarImport(){
+  document.getElementById('scholarUrlInput').value=D.scholarUrl||'';
+  document.getElementById('scholarImportStatus').textContent='';
+  openModal('scholarImportModal');
+}
+
+async function fetchScholarPublications(){
+  const url=document.getElementById('scholarUrlInput').value.trim();
+  if(!url){alert('Please enter a Google Scholar profile URL.');return;}
+  const status=document.getElementById('scholarImportStatus');
+  const btn=document.getElementById('scholarFetchBtn');
+  btn.disabled=true; btn.textContent='Fetching…';
+  status.textContent='Note: Direct Scholar scraping is blocked by CORS. Saving your Scholar URL for display. Please use "+ Add Publication" to add papers manually, or paste exported BibTeX below.';
+  status.style.color='var(--gold)';
+  // Save the URL for display purposes
+  D.scholarUrl=url;
+  await saveToFirebase();
+  btn.disabled=false; btn.textContent='Save URL';
+  btn.textContent='Fetch Publications';
+}
+
+async function refreshScholarFeed(){
+  // Display message about manual update
+  alert('Google Scholar auto-fetch is not available due to cross-origin restrictions.\n\nTo keep publications updated:\n1. Export from Scholar as BibTeX\n2. Use "+ Add Publication" to enter manually\n3. Your Scholar profile link is saved and shown to visitors.');
+}
+
+function openPubForm(id=null){
+  document.getElementById('pubFormTitle').textContent=id?'Edit Publication':'Add Publication';
+  if(id){
+    const p=(D.publications||[]).find(x=>x.id===id);
+    if(p){
+      document.getElementById('pfPubId').value=p.id;
+      document.getElementById('pfPubTitle').value=p.title||'';
+      document.getElementById('pfPubAuthors').value=p.authors||'';
+      document.getElementById('pfPubYear').value=p.year||'';
+      document.getElementById('pfPubType').value=p.type||'journal';
+      document.getElementById('pfPubVenue').value=p.venue||'';
+      document.getElementById('pfPubDoi').value=p.doi||'';
+      document.getElementById('pfPubPdf').value=p.pdf||'';
+      document.getElementById('pfPubAbstract').value=p.abstract||'';
+    }
+  } else {
+    ['pfPubId','pfPubTitle','pfPubAuthors','pfPubVenue','pfPubDoi','pfPubPdf','pfPubAbstract'].forEach(f=>document.getElementById(f).value='');
+    document.getElementById('pfPubYear').value=new Date().getFullYear();
+    document.getElementById('pfPubType').value='journal';
+  }
+  openModal('pubFormModal');
+}
+
+async function savePub(){
+  const title=document.getElementById('pfPubTitle').value.trim();
+  if(!title){alert('Title is required.');return;}
+  const btn=document.getElementById('pfPubSaveBtn');
+  btn.disabled=true; btn.textContent='Saving…';
+  if(!D.publications) D.publications=[];
+  const id=document.getElementById('pfPubId').value||('pub-'+Date.now());
+  const obj={id,title,
+    authors:document.getElementById('pfPubAuthors').value.trim()||null,
+    year:parseInt(document.getElementById('pfPubYear').value)||new Date().getFullYear(),
+    type:document.getElementById('pfPubType').value,
+    venue:document.getElementById('pfPubVenue').value.trim()||null,
+    doi:document.getElementById('pfPubDoi').value.trim()||null,
+    pdf:document.getElementById('pfPubPdf').value.trim()||null,
+    abstract:document.getElementById('pfPubAbstract').value.trim()||null,
+  };
+  const idx=D.publications.findIndex(p=>p.id===id);
+  if(idx>=0) D.publications[idx]=obj; else D.publications.push(obj);
+  await saveToFirebase();
+  btn.disabled=false; btn.textContent='Save';
+  closeModal('pubFormModal'); rPublications();
+}
+
+/* ══════════════════════════════════════════════════
+   RESOURCES
+══════════════════════════════════════════════════ */
+const RES_ICONS={dataset:'📊',tool:'🔧',code:'💻',report:'📄',protocol:'🔬',other:'📁'};
+let resCatFilter='all';
+
+function rResources(){
+  if(!D) return;
+  const resources=(D.resources||[]);
+  const cats=['all',...new Set(resources.map(r=>r.category))];
+  const tabsEl=document.getElementById('resCatTabs');
+  if(tabsEl) tabsEl.innerHTML=cats.map(cat=>`
+    <button class="fb${resCatFilter===cat?' on':''}" onclick="resFilter('${cat}',this)">${cat==='all'?'All':cat.charAt(0).toUpperCase()+cat.slice(1)}</button>`).join('');
+  const list=resources.filter(r=>resCatFilter==='all'||r.category===resCatFilter);
+  const grid=document.getElementById('resGrid');
+  if(!grid) return;
+  if(!list.length){grid.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-icon">📁</div><p>No resources yet.</p></div>`;return;}
+  grid.innerHTML=list.map(r=>`
+    <div class="res-card">
+      ${isAdmin?`<div style="position:absolute;top:10px;right:12px;display:flex;gap:4px"><button class="ica ica-edit" onclick="openResForm('${r.id}')">✏️</button><button class="ica ica-del" onclick="confirmDelete('res','${r.id}')">🗑</button></div>`:''}
+      <div class="res-icon">${r.icon||RES_ICONS[r.category]||'📁'}</div>
+      <div class="res-title">${r.title}</div>
+      <div class="res-desc">${r.desc||''}</div>
+      <div class="res-tags">${(r.tags||[]).map(t=>`<span class="res-tag">${t}</span>`).join('')}</div>
+      ${r.link?`<a class="res-link" href="${r.link}" target="_blank">Download / View →</a>`:''}
+    </div>`).join('');
+}
+function resFilter(cat,btn){
+  resCatFilter=cat;
+  document.querySelectorAll('#resCatTabs .fb').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  rResources();
+}
+
+function openResForm(id=null){
+  document.getElementById('rfResProject').innerHTML='<option value="">— None —</option>'+(D.projects||[]).map(p=>`<option value="${p.id}">${p.title}</option>`).join('');
+  document.getElementById('resFormTitle').textContent=id?'Edit Resource':'Add Resource';
+  if(id){
+    const r=(D.resources||[]).find(x=>x.id===id);
+    if(r){
+      document.getElementById('rfResId').value=r.id;
+      document.getElementById('rfResTitle').value=r.title||'';
+      document.getElementById('rfResDesc').value=r.desc||'';
+      document.getElementById('rfResCat').value=r.category||'dataset';
+      document.getElementById('rfResIcon').value=r.icon||'';
+      document.getElementById('rfResLink').value=r.link||'';
+      document.getElementById('rfResTags').value=(r.tags||[]).join(', ');
+      document.getElementById('rfResProject').value=r.projectId||'';
+    }
+  } else {
+    ['rfResId','rfResTitle','rfResDesc','rfResIcon','rfResLink','rfResTags'].forEach(f=>document.getElementById(f).value='');
+    document.getElementById('rfResCat').value='dataset';
+  }
+  openModal('resFormModal');
+}
+
+async function saveResource(){
+  const title=document.getElementById('rfResTitle').value.trim();
+  if(!title){alert('Title is required.');return;}
+  const btn=document.getElementById('rfResSaveBtn');
+  btn.disabled=true; btn.textContent='Saving…';
+  if(!D.resources) D.resources=[];
+  const id=document.getElementById('rfResId').value||('res-'+Date.now());
+  const obj={id,title,
+    desc:document.getElementById('rfResDesc').value.trim()||null,
+    category:document.getElementById('rfResCat').value,
+    icon:document.getElementById('rfResIcon').value.trim()||null,
+    link:document.getElementById('rfResLink').value.trim()||null,
+    tags:document.getElementById('rfResTags').value.split(',').map(t=>t.trim()).filter(Boolean),
+    projectId:document.getElementById('rfResProject').value||null,
+  };
+  const idx=D.resources.findIndex(r=>r.id===id);
+  if(idx>=0) D.resources[idx]=obj; else D.resources.push(obj);
+  await saveToFirebase();
+  btn.disabled=false; btn.textContent='Save';
+  closeModal('resFormModal'); rResources();
+}
+
+/* ══════════════════════════════════════════════════
+   ANALYTICS DASHBOARD
+══════════════════════════════════════════════════ */
+function rAnalytics(){
+  if(!D) return;
+  const statsEl=document.getElementById('analyticsStats');
+  const chartsEl=document.getElementById('analyticsCharts');
+  if(!statsEl||!chartsEl) return;
+
+  const activeMembers=D.members.filter(m=>m.status==='Active');
+  const activeProjects=D.projects.filter(p=>p.status!=='Completed');
+  const openPositions=D.recruiting.filter(r=>r.status==='Open');
+  const totalFunding=D.projects.filter(p=>p.funding).length;
+
+  statsEl.innerHTML=[
+    [activeMembers.length,'Active Members','👥'],
+    [D.projects.length,'Total Projects','🔬'],
+    [openPositions.length,'Open Positions','📋'],
+    [(D.publications||[]).length,'Publications','📄'],
+    [(D.news||[]).length,'News Posts','📰'],
+    [(D.resources||[]).length,'Resources','📁'],
+  ].map(([n,l,icon])=>`
+    <div class="stat-card">
+      <div style="font-size:2rem;margin-bottom:8px">${icon}</div>
+      <div class="stat-card-n">${n}</div>
+      <div class="stat-card-l">${l}</div>
+    </div>`).join('');
+
+  // Role distribution chart
+  const roleCounts={};
+  activeMembers.forEach(m=>{ const r=m.role||'Other'; roleCounts[r]=(roleCounts[r]||0)+1; });
+  const maxRole=Math.max(...Object.values(roleCounts),1);
+
+  // Project tags chart
+  const tagCounts={};
+  D.projects.forEach(p=>(p.tags||[]).forEach(t=>{ tagCounts[t]=(tagCounts[t]||0)+1; }));
+  const maxTag=Math.max(...Object.values(tagCounts),1);
+
+  chartsEl.innerHTML=`
+    <div class="bar-chart">
+      <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--green);margin-bottom:18px">Members by Role</h3>
+      ${Object.entries(roleCounts).sort((a,b)=>b[1]-a[1]).map(([role,count])=>`
+        <div class="bar-row">
+          <div class="bar-label">${role}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${(count/maxRole*100).toFixed(1)}%"></div></div>
+          <div class="bar-val">${count}</div>
+        </div>`).join('')}
+    </div>
+    <div class="bar-chart">
+      <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--green);margin-bottom:18px">Projects by Tag</h3>
+      ${Object.entries(tagCounts).sort((a,b)=>b[1]-a[1]).map(([tag,count])=>`
+        <div class="bar-row">
+          <div class="bar-label">${tag}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${(count/maxTag*100).toFixed(1)}%"></div></div>
+          <div class="bar-val">${count}</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+/* ══════════════════════════════════════════════════
+   EXPORT .ICS
+══════════════════════════════════════════════════ */
+function exportIcs(scope){
+  const evs=getCalEvents();
+  const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//DrAL Lab//Calendar//EN','CALSCALE:GREGORIAN'];
+  evs.forEach(ev=>{
+    const dt=ev.date.replace(/-/g,'');
+    lines.push('BEGIN:VEVENT');
+    lines.push(`UID:${ev.id}@dral-lab`);
+    lines.push(`DTSTART;VALUE=DATE:${dt}`);
+    lines.push(`DTEND;VALUE=DATE:${ev.endDate?ev.endDate.replace(/-/g,''):dt}`);
+    lines.push(`SUMMARY:${ev.title.replace(/\n/g,' ')}`);
+    if(ev.desc) lines.push(`DESCRIPTION:${ev.desc.replace(/\n/g,' ')}`);
+    if(ev.link) lines.push(`URL:${ev.link}`);
+    lines.push('END:VEVENT');
+  });
+  lines.push('END:VCALENDAR');
+  const blob=new Blob([lines.join('\r\n')],{type:'text/calendar'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='dral-lab-calendar.ics';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+
+/* ══════════════════════════════════════════════════
    INIT
 ══════════════════════════════════════════════════ */
 async function init(){
@@ -2647,6 +3248,26 @@ async function init(){
     initHeroBg();
     initRecTypeFilters();
     rCalendar();
+    rPublications();
+    rResources();
+    // Re-position carousels on window resize to maintain correct pixel offset
+    window.addEventListener('resize', ()=>{
+      document.querySelectorAll('.carousel[data-idx]').forEach(el=>{
+        const idx=parseInt(el.dataset.idx||0);
+        if(idx>0){
+          const w=el.getBoundingClientRect().width||el.offsetWidth;
+          const track=el.querySelector('.carousel-track');
+          if(track) track.style.transform=`translateX(${-idx*w}px)`;
+        }
+      });
+      // Re-position hero gallery
+      const hInner=document.getElementById('heroGalleryInner');
+      const hTrack=document.getElementById('heroGalleryTrack');
+      if(hInner&&hTrack&&_heroGalleryIdx>0){
+        const w=hInner.getBoundingClientRect().width||hInner.offsetWidth||300;
+        hTrack.style.transform=`translateX(${-_heroGalleryIdx*w}px)`;
+      }
+    });
     startRealtimeListener(); // live updates for all visitors
   } finally {
     loadScreen.classList.add('hide');
