@@ -660,8 +660,11 @@ const FIREBASE_CONFIG = {
 <!-- ABOUT -->
 <div id="page-about" class="page on">
   <div class="sh-row sh">
-    <div><h2>About DrAL Lab</h2><div class="sh-line"></div></div>
-    <button class="add-btn admin-only" style="display:none" onclick="openAboutEdit()">✏️ Edit About</button>
+    <div><h2 id="ph-about"></h2><div class="sh-line"></div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="add-btn admin-only" style="display:none;background:#6b7280" onclick="openPageTitleEditor()">✏️ Page Titles</button>
+      <button class="add-btn admin-only" style="display:none" onclick="openAboutEdit()">✏️ Edit About</button>
+    </div>
   </div>
   <!-- About Gallery -->
   <div id="aboutGallery" class="about-gallery" style="display:none">
@@ -716,7 +719,7 @@ const FIREBASE_CONFIG = {
 
 <!-- MEMBERS -->
 <div id="page-members" class="page">
-  <div class="sh"><h2>Lab Members</h2><div class="sh-line"></div><p>Faculty, researchers, and graduate students advancing active living research.</p></div>
+  <div class="sh"><h2 id="ph-members"></h2><div class="sh-line"></div><p id="ps-members"></p></div>
   <div class="admin-bar" id="mAdminBar">
     <span>🟢 Admin Mode — Use ✏️/🗑 buttons to edit/delete, or add a new member</span>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -733,20 +736,11 @@ const FIREBASE_CONFIG = {
   <div class="drag-hint" id="mDragHint">⠿ Drag member cards to reorder. Order is saved automatically.</div>
   <div class="mgrid" id="mGrid"></div>
 
-  <!-- Alumni Section (shown when Former tab is active) -->
-  <div id="alumniSection" style="display:none">
-    <div style="margin-top:40px;margin-bottom:20px">
-      <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--green);margin-bottom:6px">🎓 Alumni</h3>
-      <div class="sh-line"></div>
-      <p style="font-size:.85rem;color:var(--muted);margin-top:8px">Former lab members and their current affiliations.</p>
-    </div>
-    <div class="alumni-grid" id="alumniGrid"></div>
-  </div>
 </div>
 
 <!-- PROJECTS -->
 <div id="page-projects" class="page">
-  <div class="sh"><h2>Research Projects</h2><div class="sh-line"></div><p>Ongoing investigations across built environment, health equity, and active transportation.</p></div>
+  <div class="sh"><h2 id="ph-projects"></h2><div class="sh-line"></div><p id="ps-projects"></p></div>
   <div class="admin-bar" id="pAdminBar">
     <span>🟢 Admin Mode — Edit projects, manage team members, add new projects</span>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -777,7 +771,7 @@ const FIREBASE_CONFIG = {
 <!-- RECRUITING -->
 <div id="page-recruiting" class="page">
   <div class="sh-row sh">
-    <div><h2>Open Positions</h2><div class="sh-line"></div></div>
+    <div><h2 id="ph-recruiting"></h2><div class="sh-line"></div><p id="ps-recruiting"></p></div>
   </div>
   <div class="admin-bar" id="rAdminBar">
     <span>🟢 Admin Mode — Add, edit, or delete postings</span>
@@ -798,7 +792,7 @@ const FIREBASE_CONFIG = {
 <!-- NEWS -->
 <div id="page-news" class="page">
   <div class="sh-row sh">
-    <div><h2>Lab News</h2><div class="sh-line"></div><p>Latest updates, publications, awards, and events from DrAL Lab.</p></div>
+    <div><h2 id="ph-news"></h2><div class="sh-line"></div><p id="ps-news"></p></div>
   </div>
   <div class="admin-bar" id="nAdminBar">
     <span>🟢 Admin Mode — Add, edit, or delete news</span>
@@ -817,7 +811,7 @@ const FIREBASE_CONFIG = {
 <!-- CALENDAR -->
 <div id="page-calendar" class="page">
   <div class="sh-row sh">
-    <div><h2>Lab Calendar</h2><div class="sh-line"></div><p>Lab meetings, recruiting deadlines, and upcoming events.</p></div>
+    <div><h2 id="ph-calendar"></h2><div class="sh-line"></div><p id="ps-calendar"></p></div>
     <button onclick="exportIcs('all')" style="background:none;border:1.5px solid var(--border);padding:8px 16px;border-radius:8px;font-size:.82rem;cursor:pointer;display:flex;align-items:center;gap:6px">📅 Export .ics</button>
   </div>
   <div class="admin-bar" id="calAdminBar">
@@ -848,12 +842,13 @@ const FIREBASE_CONFIG = {
 <!-- PUBLICATIONS -->
 <div id="page-publications" class="page">
   <div class="sh-row sh">
-    <div><h2>Publications</h2><div class="sh-line"></div><p>Peer-reviewed articles, conference papers, and reports from DrAL Lab.</p></div>
+    <div><h2 id="ph-publications"></h2><div class="sh-line"></div><p id="ps-publications"></p></div>
   </div>
   <div class="admin-bar" id="pubAdminBar">
     <span>🟢 Admin Mode</span>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="add-btn" style="background:#0369a1" onclick="syncOrcidPublications()">🔄 Sync ORCID</button>
+      <button class="add-btn" style="background:#7c3aed" onclick="syncOpenAlex()">🔬 Sync OpenAlex</button>
       <button class="add-btn" onclick="openPubForm()">+ Add Manually</button>
     </div>
   </div>
@@ -893,7 +888,7 @@ const FIREBASE_CONFIG = {
 <!-- RESOURCES -->
 <div id="page-resources" class="page">
   <div class="sh-row sh">
-    <div><h2>Lab Resources</h2><div class="sh-line"></div><p>Datasets, tools, code, and documents from DrAL research.</p></div>
+    <div><h2 id="ph-resources"></h2><div class="sh-line"></div><p id="ps-resources"></p></div>
   </div>
   <div class="admin-bar" id="resAdminBar">
     <span>🟢 Admin Mode — Add or edit resources.</span>
@@ -906,7 +901,7 @@ const FIREBASE_CONFIG = {
 <!-- ANALYTICS (Admin only) -->
 <div id="page-analytics" class="page">
   <div class="sh-row sh">
-    <div><h2>Lab Analytics</h2><div class="sh-line"></div><p>Overview of lab activity, membership, and research.</p></div>
+    <div><h2 id="ph-analytics"></h2><div class="sh-line"></div><p id="ps-analytics"></p></div>
     <div style="display:flex;gap:8px">
       <button onclick="exportIcs('all')" style="background:none;border:1.5px solid var(--border);padding:8px 16px;border-radius:8px;font-size:.82rem;cursor:pointer">📅 Export All Events (.ics)</button>
     </div>
@@ -930,7 +925,7 @@ const FIREBASE_CONFIG = {
 <!-- COLLABORATION MAP -->
 <div id="page-collab" class="page">
   <div class="sh-row sh">
-    <div><h2>Collaboration Map</h2><div class="sh-line"></div><p>Research partners and collaborating institutions worldwide.</p></div>
+    <div><h2 id="ph-collab"></h2><div class="sh-line"></div><p id="ps-collab"></p></div>
   </div>
   <div class="admin-bar" id="collabAdminBar">
     <span>🟢 Admin Mode — Add partner institutions to projects to populate this map.</span>
@@ -979,6 +974,21 @@ const FIREBASE_CONFIG = {
     <div class="factions">
       <button class="btn-cancel" onclick="closeModal('footerModal')">Cancel</button>
       <button class="btn-save" onclick="saveFooter()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Page Title Editor -->
+<div class="overlay" id="pageTitleModal" onclick="if(event.target===this)closeModal('pageTitleModal')">
+  <div class="modal wide" style="max-width:600px">
+    <button class="modal-x" onclick="closeModal('pageTitleModal')">×</button>
+    <h3>Edit Page Headers</h3>
+    <p style="font-size:.83rem;color:var(--muted);margin-bottom:18px">Customize the title and subtitle shown at the top of each page.</p>
+    <div id="pageTitleList" style="display:flex;flex-direction:column;gap:14px"></div>
+    <div class="factions">
+      <button class="btn-cancel" onclick="resetPageTitles()">↺ Reset Defaults</button>
+      <button class="btn-cancel" onclick="closeModal('pageTitleModal')">Cancel</button>
+      <button class="btn-save" onclick="savePageTitles()">Save All</button>
     </div>
   </div>
 </div>
@@ -1143,8 +1153,8 @@ const FIREBASE_CONFIG = {
     </div>
     <div class="fg"><label>Link URL</label><input id="pfDrive" type="url" placeholder="https://…"></div>
     <div class="fg">
-      <label>Partner Institutions <span style="font-weight:400;color:var(--muted)">(one per line: Name, City, Country)</span></label>
-      <textarea id="pfPartners" style="min-height:80px" placeholder="University of Texas, Austin, USA&#10;Seoul National University, Seoul, South Korea&#10;ZOOM / Remote"></textarea>
+      <label>Partner Institutions <span style="font-weight:400;color:var(--muted)">(one per line: Name, City, Country, URL)</span></label>
+      <textarea id="pfPartners" style="min-height:80px" placeholder="University of Texas, Austin, USA, https://www.utexas.edu&#10;Seoul National University, Seoul, South Korea, https://www.snu.ac.kr&#10;Texas A&M University, College Station, USA, https://tamu.edu"></textarea>
     </div>
     <div class="fg">
       <label>Photos (1:1) <span style="font-weight:400;color:var(--muted)">(multiple photos allowed)</span></label>
@@ -2065,32 +2075,6 @@ function rMembers(){
       </div>
     </div>`}).join('');
 
-  // Alumni section (shown when Former tab active)
-  const alumniSec=document.getElementById('alumniSection');
-  const alumniGrid=document.getElementById('alumniGrid');
-  if(alumniSec&&alumniGrid){
-    if(isFormer){
-      alumniSec.style.display='block';
-      // Show ALL former members in alumni section
-      alumniGrid.innerHTML=list.length?list.map(m=>`
-        <div class="alumni-card">
-          <div class="alumni-av">${m.photoUrl?`<img src="${m.photoUrl}" alt="${m.name}">`:`${ini(m.name)}`}</div>
-          <div style="flex:1;min-width:0">
-            <div class="alumni-name">${m.name}</div>
-            <div class="alumni-role">${m.role}${m.subRole?` · <em>${m.subRole}</em>`:''}</div>
-            ${m.currentAffiliation?`<div class="alumni-now">→ ${m.currentAffiliation}</div>`:''}
-            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
-              ${m.email?`<a href="mailto:${m.email}" style="font-size:.71rem;color:var(--muted);text-decoration:none">✉ ${m.email}</a>`:''}
-              ${m.scholar?`<a href="${m.scholar}" target="_blank" style="font-size:.71rem;color:var(--muted);text-decoration:none">🎓 Scholar</a>`:''}
-              ${m.webpage?`<a href="${m.webpage}" target="_blank" style="font-size:.71rem;color:var(--muted);text-decoration:none">🌐 Web</a>`:''}
-            </div>
-          </div>
-          ${isAdmin?`<button class="ica ica-edit" onclick="openMemberForm(${m.id});event.stopPropagation()" style="flex-shrink:0">✏️</button>`:''}
-        </div>`).join(''):'<p style="color:var(--muted);font-size:.85rem">No former members yet.</p>';
-    } else {
-      alumniSec.style.display='none';
-    }
-  }
 }
 
 /* ── ROLE MANAGER ── */
@@ -2143,7 +2127,15 @@ function openMemberView(id){
   if(m.status==='Former') metaParts.push('Former Member');
   document.getElementById('mvMeta').textContent=metaParts.join(' · ');
   const bio=document.getElementById('mvBio');
-  m.bio?(bio.textContent=m.bio,bio.style.display='block'):bio.style.display='none';
+  if(m.bio || m.currentAffiliation) {
+    let bioHtml = '';
+    if(m.currentAffiliation) bioHtml += `<div style="font-size:.82rem;color:var(--green-l);font-weight:500;margin-bottom:6px">📍 Currently: ${m.currentAffiliation}</div>`;
+    if(m.bio) bioHtml += `<div>${m.bio}</div>`;
+    bio.innerHTML = bioHtml;
+    bio.style.display = 'block';
+  } else {
+    bio.style.display = 'none';
+  }
   document.getElementById('mvLinks').innerHTML=[
     `<a class="mlink" href="mailto:${m.email}">✉ ${m.email}</a>`,
     m.scholar?`<a class="mlink sc" href="${m.scholar}" target="_blank">🎓 Google Scholar</a>`:'',
@@ -2197,6 +2189,15 @@ function openMemberForm(id=null){
  * Returns a Promise that resolves to the public download URL.
  * Falls back to base64 if Storage is not available.
  */
+/* ══════════════════════════════════════════════════
+   CLOUDINARY UPLOAD (free, no server needed)
+   Setup: create free account at cloudinary.com,
+   then go to Settings → Upload → Upload presets → Add preset
+   Set preset to "unsigned", copy Cloud Name + Preset name below.
+══════════════════════════════════════════════════ */
+const CLOUDINARY_CLOUD = 'dral-lab'; // ← replace with your Cloud Name
+const CLOUDINARY_PRESET = 'dral_unsigned'; // ← replace with your Upload Preset
+
 async function uploadImageToStorage(file, folder='uploads', maxW=1200, maxH=1000, quality=0.85){
   return new Promise((resolve) => {
     const reader = new FileReader();
@@ -2211,7 +2212,28 @@ async function uploadImageToStorage(file, folder='uploads', maxW=1200, maxH=1000
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
 
         canvas.toBlob(async blob => {
-          // Try Firebase Storage first
+          // Try Cloudinary first (recommended — free, reliable, permanent URLs)
+          try{
+            const formData = new FormData();
+            formData.append('file', blob, 'image.jpg');
+            formData.append('upload_preset', CLOUDINARY_PRESET);
+            formData.append('folder', 'dral-lab/'+folder);
+            const resp = await fetch(
+              `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,
+              { method: 'POST', body: formData }
+            );
+            if(resp.ok){
+              const data = await resp.json();
+              if(data.secure_url){
+                resolve(data.secure_url);
+                return;
+              }
+            }
+          }catch(cloudErr){
+            console.warn('Cloudinary upload failed:', cloudErr.message);
+          }
+
+          // Fallback: Firebase Storage
           if(IS_CONFIGURED && storage){
             try{
               const path = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2,8)}.jpg`;
@@ -2219,11 +2241,7 @@ async function uploadImageToStorage(file, folder='uploads', maxW=1200, maxH=1000
               const task = ref.put(blob, {contentType:'image/jpeg'});
               task.on('state_changed', null,
                 async (err) => {
-                  // Storage failed — show clear message and use base64 fallback
-                  console.warn('Firebase Storage upload failed:', err.code, err.message);
-                  if(err.code === 'storage/unauthorized'){
-                    alert('📸 Image upload blocked.\n\nFix: Go to Firebase Console → Storage → Rules\nSet:\n  allow read, write: if true;\n\nUsing compressed local preview for now (may not persist).');
-                  }
+                  console.warn('Firebase Storage failed:', err.code);
                   const r2 = new FileReader();
                   r2.onload = ev => resolve(ev.target.result);
                   r2.readAsDataURL(blob);
@@ -2234,11 +2252,11 @@ async function uploadImageToStorage(file, folder='uploads', maxW=1200, maxH=1000
                 }
               );
               return;
-            }catch(e){
-              console.warn('Storage init error:', e);
-            }
+            }catch(e){ console.warn('Storage error:', e); }
           }
-          // Fallback: base64
+
+          // Final fallback: base64 (warning: may hit Firestore 1MB limit)
+          console.warn('All upload methods failed — using base64 fallback');
           const r2 = new FileReader();
           r2.onload = ev => resolve(ev.target.result);
           r2.readAsDataURL(blob);
@@ -2601,6 +2619,7 @@ function openRecTypeManager(){
   applyHeroVisibility();
   applyHiddenTabs();
   initTheme();
+  applyPageTitles();
   initAboutGallery();
   renderRecTypeList();
   openModal('recTypeModal');
@@ -3851,6 +3870,11 @@ function pubAuthorFilter_(name,btn){
 }
 
 /* ── ORCID API SYNC ── */
+function _titleKey(title, year){
+  // Normalized key for deduplication: lowercase, remove punctuation, first 60 chars + year
+  return (title||'').toLowerCase().replace(/[^a-z0-9 ]/g,'').replace(/\s+/g,' ').trim().slice(0,60)+'|'+(year||'');
+}
+
 async function syncOrcidPublications(){
   const statusDiv=document.getElementById('orcidSyncStatus');
   const dot=document.getElementById('orcidSyncDot');
@@ -3864,6 +3888,8 @@ async function syncOrcidPublications(){
   let newCount=0, errorCount=0;
   if(!D.publications) D.publications=[];
   const existingDois=new Set(D.publications.map(p=>p.doi).filter(Boolean));
+  // For works without DOI, deduplicate by normalized title+year
+  const existingTitleKeys=new Set(D.publications.map(p=>_titleKey(p.title,p.year)));
 
   // Build reverse map: orcid → name for bold highlighting
   const orcidToName=Object.fromEntries(Object.entries(ORCID_MAP).map(([n,o])=>[o,n]));
@@ -3889,6 +3915,9 @@ async function syncOrcidPublications(){
         const doiObj=extIds.find(e=>e['external-id-type']==='doi');
         const doi=doiObj?'https://doi.org/'+doiObj['external-id-value']:null;
         if(doi&&existingDois.has(doi)) continue;
+        // Skip by title+year for works without DOI
+        const tKey=_titleKey(title,year);
+        if(!doi&&existingTitleKeys.has(tKey)) continue;
 
         let mappedType='journal';
         if(type.includes('conference')||type.includes('proceedings')) mappedType='conference';
@@ -3935,6 +3964,7 @@ async function syncOrcidPublications(){
         };
         D.publications.push(pub);
         if(doi) existingDois.add(doi);
+        if(!doi) existingTitleKeys.add(tKey);
         newCount++;
       }
     }catch(e){
@@ -4630,6 +4660,183 @@ function initTheme(){
   if(D&&D.theme) applyThemeColors(D.theme.primary,D.theme.accent,D.theme.bg);
 }
 
+const PAGE_TITLE_DEFAULTS={
+  about:       {title:'About DrAL Lab',       sub:''},
+  members:     {title:'Lab Members',          sub:'Faculty, researchers, and graduate students advancing active living research.'},
+  projects:    {title:'Research Projects',    sub:'Ongoing investigations across built environment, health equity, and active transportation.'},
+  recruiting:  {title:'Open Positions',       sub:''},
+  news:        {title:'Lab News',             sub:'Latest updates, publications, awards, and events from DrAL Lab.'},
+  calendar:    {title:'Lab Calendar',         sub:'Lab meetings, recruiting deadlines, and upcoming events.'},
+  publications:{title:'Publications',         sub:'Peer-reviewed articles, conference papers, and reports from DrAL Lab.'},
+  resources:   {title:'Lab Resources',        sub:'Datasets, tools, code, and documents from DrAL research.'},
+  analytics:   {title:'Lab Analytics',        sub:'Overview of lab activity, membership, and research.'},
+  collab:      {title:'Collaboration Map',    sub:'Research partners and collaborating institutions worldwide.'},
+};
+
+function applyPageTitles(){
+  const pt=D&&D.pageTitles||{};
+  Object.entries(PAGE_TITLE_DEFAULTS).forEach(([page,def])=>{
+    const h=document.getElementById('ph-'+page);
+    const p=document.getElementById('ps-'+page);
+    const t=(pt[page]&&pt[page].title)||def.title;
+    const s=(pt[page]&&pt[page].sub)||def.sub;
+    if(h) h.textContent=t;
+    if(p){ p.textContent=s; p.style.display=s?'':'none'; }
+  });
+}
+
+function openPageTitleEditor(){
+  if(!D.pageTitles) D.pageTitles={};
+  const pt=D.pageTitles;
+  document.getElementById('pageTitleList').innerHTML=Object.entries(PAGE_TITLE_DEFAULTS).map(([page,def])=>`
+    <div style="border:1px solid var(--border);border-radius:10px;padding:14px">
+      <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px">${page.toUpperCase()}</div>
+      <div class="fr">
+        <div class="fg" style="margin-bottom:0">
+          <label style="font-size:.75rem">Title</label>
+          <input id="pt-title-${page}" type="text" value="${(pt[page]&&pt[page].title)||def.title}" placeholder="${def.title}">
+        </div>
+        <div class="fg" style="margin-bottom:0">
+          <label style="font-size:.75rem">Subtitle</label>
+          <input id="pt-sub-${page}" type="text" value="${(pt[page]&&pt[page].sub)||def.sub}" placeholder="${def.sub||'(optional)'}">
+        </div>
+      </div>
+    </div>`).join('');
+  openModal('pageTitleModal');
+}
+
+async function savePageTitles(){
+  if(!D.pageTitles) D.pageTitles={};
+  Object.keys(PAGE_TITLE_DEFAULTS).forEach(page=>{
+    const title=document.getElementById('pt-title-'+page)?.value.trim();
+    const sub=document.getElementById('pt-sub-'+page)?.value.trim();
+    D.pageTitles[page]={title:title||PAGE_TITLE_DEFAULTS[page].title, sub:sub||''};
+  });
+  await saveToFirebase();
+  applyPageTitles();
+  closeModal('pageTitleModal');
+}
+
+async function resetPageTitles(){
+  D.pageTitles={};
+  await saveToFirebase();
+  applyPageTitles();
+  closeModal('pageTitleModal');
+}
+
+/* ══════════════════════════════════════════════════
+   OPENALEX SYNC
+   OpenAlex is a fully open, free scholarly database
+   with 200M+ works, full author lists, and abstracts.
+══════════════════════════════════════════════════ */
+async function syncOpenAlex(){
+  const dot=document.getElementById('orcidSyncDot');
+  const msg=document.getElementById('orcidSyncMsg');
+  const statusDiv=document.getElementById('orcidSyncStatus');
+  const lastSync=document.getElementById('orcidLastSync');
+  statusDiv.style.display='flex';
+  dot.className='orcid-sync-dot syncing';
+  msg.textContent='Searching OpenAlex…';
+
+  if(!D.publications) D.publications=[];
+  const existingDois=new Set(D.publications.map(p=>p.doi).filter(Boolean));
+  const existingTitleKeys=new Set(D.publications.map(p=>_titleKey(p.title,p.year)));
+
+  let newCount=0, errorCount=0;
+  const orcidIds=Object.entries(ORCID_MAP);
+
+  for(let i=0; i<orcidIds.length; i++){
+    const [name, orcid]=orcidIds[i];
+    msg.textContent=`OpenAlex: searching ${name}… (${i+1}/${orcidIds.length})`;
+    try{
+      // Query OpenAlex by ORCID
+      const url=`https://api.openalex.org/works?filter=author.orcid:${orcid}&per-page=100&select=id,title,publication_year,type,primary_location,authorships,doi,abstract_inverted_index&mailto=drallab@tamu.edu`;
+      const resp=await fetch(url, {headers:{'User-Agent':'DrAL-Lab/1.0 (mailto:drallab@tamu.edu)'}});
+      if(!resp.ok){ errorCount++; continue; }
+      const data=await resp.json();
+      const works=(data.results||[]);
+
+      for(const work of works){
+        const title=work.title||'';
+        if(!title) continue;
+        const year=work.publication_year||null;
+        // DOI: OpenAlex stores as full URL like "https://doi.org/..."
+        const doi=work.doi||null;
+
+        if(doi&&existingDois.has(doi)) continue;
+        const tKey=_titleKey(title,year);
+        if(!doi&&existingTitleKeys.has(tKey)) continue;
+
+        // Map OpenAlex type
+        let mappedType='journal';
+        const oaType=work.type||'';
+        if(oaType.includes('conference')||oaType.includes('proceedings')) mappedType='conference';
+        else if(oaType.includes('report')||oaType.includes('dissertation')||oaType==='dataset') mappedType='report';
+
+        // Full author list with bold-ready lab names
+        const authorships=work.authorships||[];
+        let authorList='';
+        if(authorships.length){
+          authorList=authorships.map(a=>{
+            const displayName=a.author?.display_name||'';
+            return displayName;
+          }).filter(Boolean).join(', ');
+        } else {
+          authorList=name; // fallback
+        }
+
+        // Venue
+        const venue=work.primary_location?.source?.display_name||null;
+
+        const pub={
+          id:'oa-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),
+          title,
+          authors:authorList,
+          labOrcid:orcid,
+          year,
+          type:mappedType,
+          venue,
+          doi,
+          pdf:work.primary_location?.pdf_url||null,
+          source:'openalex',
+          oaId:work.id||null,
+        };
+        D.publications.push(pub);
+        if(doi) existingDois.add(doi);
+        existingTitleKeys.add(tKey);
+        newCount++;
+      }
+    }catch(e){
+      console.warn('OpenAlex error for',orcid,e);
+      errorCount++;
+    }
+  }
+
+  // Deduplicate across the full list after sync
+  // (catches cases where ORCID and OpenAlex returned the same paper)
+  const seenDois=new Set();
+  const seenKeys=new Set();
+  D.publications=D.publications.filter(p=>{
+    if(p.doi){
+      if(seenDois.has(p.doi)) return false;
+      seenDois.add(p.doi); return true;
+    } else {
+      const k=_titleKey(p.title,p.year);
+      if(seenKeys.has(k)) return false;
+      seenKeys.add(k); return true;
+    }
+  });
+
+  if(!D.orcidLastSync) D.orcidLastSync={};
+  D.orcidLastSync.openAlexDate=new Date().toISOString();
+  await saveToFirebase();
+
+  dot.className='orcid-sync-dot done';
+  msg.textContent=`OpenAlex sync complete — ${newCount} new publications added${errorCount?' ('+errorCount+' errors)':''}`;
+  lastSync.textContent='OpenAlex synced: '+new Date().toLocaleString();
+  rPublications();
+}
+
 /* ══════════════════════════════════════════════════
    FOOTER + HERO VISIBILITY
 ══════════════════════════════════════════════════ */
@@ -4706,8 +4913,10 @@ function rCollabMap(){
       const name=parts[0]||raw;
       const city=parts[1]||'';
       const country=parts[2]||'';
+      // URL is last part if it starts with http
+      const url=parts.find(p=>p.startsWith('http'))||null;
       const key=name+'|'+city;
-      if(!partnerMap[key]) partnerMap[key]={name,city,country,projects:[]};
+      if(!partnerMap[key]) partnerMap[key]={name,city,country,url,projects:[]};
       partnerMap[key].projects.push(p.title);
     });
   });
@@ -4725,7 +4934,7 @@ function rCollabMap(){
       <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:16px 20px;display:flex;gap:12px;align-items:flex-start">
         <div style="font-size:1.4rem;flex-shrink:0">🏛</div>
         <div>
-          <div style="font-weight:600;font-size:.92rem">${p.name}</div>
+          <div style="font-weight:600;font-size:.92rem">${p.url?`<a href="${p.url}" target="_blank" style="color:var(--green);text-decoration:none">${p.name} 🔗</a>`:p.name}</div>
           <div style="font-size:.78rem;color:var(--muted);margin-top:2px">${[p.city,p.country].filter(Boolean).join(', ')}</div>
           <div style="font-size:.73rem;color:var(--green-l);margin-top:4px">${p.projects.join(' · ')}</div>
         </div>
@@ -4755,11 +4964,12 @@ function rCollabMap(){
               style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--white);border:1px solid var(--border);border-radius:9px;text-decoration:none;color:var(--text);transition:box-shadow .15s"
               onmouseover="this.style.boxShadow='0 2px 12px rgba(0,0,0,.08)'" onmouseout="this.style.boxShadow=''">
               <span style="font-size:1.2rem">📍</span>
-              <div>
+              <div style="flex:1;min-width:0">
                 <div style="font-weight:500;font-size:.88rem">${p.name}</div>
                 <div style="font-size:.74rem;color:var(--muted)">${[p.city,p.country].filter(Boolean).join(', ')}</div>
               </div>
-              <span style="margin-left:auto;font-size:.72rem;color:var(--muted)">Open Maps →</span>
+              ${p.url?`<a href="${p.url}" target="_blank" onclick="event.stopPropagation()" style="font-size:.72rem;color:var(--green);white-space:nowrap">🏛 Website</a>`:''}
+              <span style="font-size:.72rem;color:var(--muted);white-space:nowrap">Maps →</span>
             </a>`;
           }).join('')}
         </div>
