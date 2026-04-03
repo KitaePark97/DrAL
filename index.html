@@ -607,6 +607,7 @@ const FIREBASE_CONFIG = {
     <button class="nbtn" id="navBtn-publications" onclick="goto('publications',this)" style="display:none">Publications</button>
     <button class="nbtn" id="navBtn-resources" onclick="goto('resources',this)">Resources</button>
     <button class="nbtn" id="navBtn-analytics" onclick="goto('analytics',this)">Analytics</button>
+    <button class="nbtn" id="navBtn-collab" onclick="goto('collab',this)" style="display:none">Map</button>
   </div>
   <div class="nav-right">
     <button class="nbtn" onclick="openSearch()" title="Search (Ctrl+K)" style="font-size:1rem;padding:6px 10px">🔍</button>
@@ -694,7 +695,7 @@ const FIREBASE_CONFIG = {
       </div>
       <div class="newsletter-success" id="newsletterSuccess">✓ You're subscribed! We'll be in touch.</div>
     </div>
-    <div id="newsletterAdminStats" style="display:none;text-align:right">
+    <div id="newsletterAdminStats" class="admin-only" style="display:none;text-align:right">
       <div style="font-size:2rem;font-weight:700;font-family:'Cormorant Garamond',serif" id="subCount">0</div>
       <div style="font-size:.8rem;opacity:.8">Subscribers</div>
       <button onclick="exportSubscribers()" style="margin-top:8px;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.3);color:#fff;padding:5px 13px;border-radius:7px;font-size:.75rem;cursor:pointer">📥 Export CSV</button>
@@ -926,6 +927,26 @@ const FIREBASE_CONFIG = {
   </div>
 </div>
 
+<!-- COLLABORATION MAP -->
+<div id="page-collab" class="page">
+  <div class="sh-row sh">
+    <div><h2>Collaboration Map</h2><div class="sh-line"></div><p>Research partners and collaborating institutions worldwide.</p></div>
+  </div>
+  <div class="admin-bar" id="collabAdminBar">
+    <span>🟢 Admin Mode — Add partner institutions to projects to populate this map.</span>
+  </div>
+  <div id="collabMapWrap" style="border-radius:14px;overflow:hidden;border:1px solid var(--border);margin-bottom:28px;min-height:420px;background:var(--bg)">
+    <div id="collabMapFrame" style="width:100%;height:420px"></div>
+  </div>
+  <div>
+    <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--green);margin-bottom:16px">Partner Institutions</h3>
+    <div id="partnerList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px"></div>
+  </div>
+  <div style="margin-top:20px;font-size:.78rem;color:var(--muted)">
+    💡 Add partner institutions when editing a project. Enter institution name, city, and country.
+  </div>
+</div>
+
 <footer>
   <div id="footerLine1" style="color:rgba(255,255,255,.9);font-weight:600"></div>
   <div id="footerLine2" style="margin-top:5px;color:rgba(255,255,255,.6)"></div>
@@ -1121,6 +1142,10 @@ const FIREBASE_CONFIG = {
       <div class="fg"><label>End Year</label><input id="pfEndYear" type="number" placeholder="2025" min="1990" max="2040" style="width:100%"></div>
     </div>
     <div class="fg"><label>Link URL</label><input id="pfDrive" type="url" placeholder="https://…"></div>
+    <div class="fg">
+      <label>Partner Institutions <span style="font-weight:400;color:var(--muted)">(one per line: Name, City, Country)</span></label>
+      <textarea id="pfPartners" style="min-height:80px" placeholder="University of Texas, Austin, USA&#10;Seoul National University, Seoul, South Korea&#10;ZOOM / Remote"></textarea>
+    </div>
     <div class="fg">
       <label>Photos (1:1) <span style="font-weight:400;color:var(--muted)">(multiple photos allowed)</span></label>
       <div id="pfPhotoList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px"></div>
@@ -1817,6 +1842,7 @@ function goto(name, btn) {
   if(name==='publications') rPublications();
   if(name==='resources') rResources();
   if(name==='analytics') rAnalytics();
+  if(name==='collab') rCollabMap();
 }
 
 /* ══════════════════════════════════════════════════
@@ -2045,16 +2071,22 @@ function rMembers(){
   if(alumniSec&&alumniGrid){
     if(isFormer){
       alumniSec.style.display='block';
-      const withAffiliation=list.filter(m=>m.currentAffiliation);
-      alumniGrid.innerHTML=withAffiliation.length?withAffiliation.map(m=>`
+      // Show ALL former members in alumni section
+      alumniGrid.innerHTML=list.length?list.map(m=>`
         <div class="alumni-card">
           <div class="alumni-av">${m.photoUrl?`<img src="${m.photoUrl}" alt="${m.name}">`:`${ini(m.name)}`}</div>
-          <div>
+          <div style="flex:1;min-width:0">
             <div class="alumni-name">${m.name}</div>
-            <div class="alumni-role">${m.role}${m.subRole?' · '+m.subRole:''}</div>
-            <div class="alumni-now">→ ${m.currentAffiliation}</div>
+            <div class="alumni-role">${m.role}${m.subRole?` · <em>${m.subRole}</em>`:''}</div>
+            ${m.currentAffiliation?`<div class="alumni-now">→ ${m.currentAffiliation}</div>`:''}
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px">
+              ${m.email?`<a href="mailto:${m.email}" style="font-size:.71rem;color:var(--muted);text-decoration:none">✉ ${m.email}</a>`:''}
+              ${m.scholar?`<a href="${m.scholar}" target="_blank" style="font-size:.71rem;color:var(--muted);text-decoration:none">🎓 Scholar</a>`:''}
+              ${m.webpage?`<a href="${m.webpage}" target="_blank" style="font-size:.71rem;color:var(--muted);text-decoration:none">🌐 Web</a>`:''}
+            </div>
           </div>
-        </div>`).join(''):'<p style="color:var(--muted);font-size:.85rem">Add current affiliations in member edit form.</p>';
+          ${isAdmin?`<button class="ica ica-edit" onclick="openMemberForm(${m.id});event.stopPropagation()" style="flex-shrink:0">✏️</button>`:''}
+        </div>`).join(''):'<p style="color:var(--muted);font-size:.85rem">No former members yet.</p>';
     } else {
       alumniSec.style.display='none';
     }
@@ -2437,12 +2469,13 @@ function openProjForm(id=null){
     document.getElementById('pfTags').value=p.tags.join(', ');
     document.getElementById('pfStatus').value=p.status;
     document.getElementById('pfDrive').value=p.driveUrl||'';
+    document.getElementById('pfPartners').value=(p.partners||[]).join('\n');
     document.getElementById('pfStartYear').value=p.startYear||'';
     document.getElementById('pfEndYear').value=p.endYear||'';
     _pfPhotos=[...(p.photos||[]),...(p.photoUrl&&!p.photos?[p.photoUrl]:[])].filter(Boolean);
     document.getElementById('pfRec').checked=p.recruiting;
   } else {
-    ['pfId','pfTitle','pfAbbr','pfDesc','pfPi','pfFunding','pfTags','pfDrive','pfStartYear','pfEndYear'].forEach(f=>document.getElementById(f).value='');
+    ['pfId','pfTitle','pfAbbr','pfDesc','pfPi','pfFunding','pfTags','pfDrive','pfStartYear','pfEndYear','pfPartners'].forEach(f=>document.getElementById(f).value='');
     _pfPhotos=[];
     document.getElementById('pfStatus').value='Active';
     document.getElementById('pfRec').checked=false;
@@ -2488,6 +2521,7 @@ async function saveProject(){
     funding:document.getElementById('pfFunding').value.trim()||null,
     status:document.getElementById('pfStatus').value,
     driveUrl:document.getElementById('pfDrive').value.trim()||null,
+    partners:document.getElementById('pfPartners').value.trim().split('\n').map(s=>s.trim()).filter(Boolean),
     startYear:parseInt(document.getElementById('pfStartYear').value)||null,
     endYear:parseInt(document.getElementById('pfEndYear').value)||null,
     photos:[..._pfPhotos],
@@ -2513,9 +2547,14 @@ function openTagManager(){
 function renderTagList(){
   const tags=D.projectTags||[];
   document.getElementById('tagList').innerHTML=tags.map((t,i)=>{
-    const c=TAG_PALETTE[i%TAG_PALETTE.length];
-    return `<div style="display:flex;align-items:center;gap:6px;background:${c.bg};color:${c.color};padding:4px 10px;border-radius:20px;font-size:.79rem;font-weight:500">
-      ${t}
+    const col=TAG_PALETTE[i%TAG_PALETTE.length];
+    return `<div draggable="true" data-idx="${i}"
+         ondragstart="listDndStart(event,'tag',${i})"
+         ondragover="listDndOver(event)"
+         ondragleave="listDndLeave(event)"
+         ondrop="listDndDrop(event,'tag',${i})"
+         style="display:flex;align-items:center;gap:6px;background:${col.bg};color:${col.color};padding:4px 10px;border-radius:20px;font-size:.79rem;font-weight:500;cursor:grab;border:1.5px solid transparent">
+      <span style="font-size:.68rem;opacity:.45">⠿</span>${t}
       <button onclick="removeTag(${i})" style="background:none;border:none;color:inherit;cursor:pointer;font-size:.85rem;padding:0;line-height:1">×</button>
     </div>`;
   }).join('');
@@ -2569,8 +2608,14 @@ function openRecTypeManager(){
 function renderRecTypeList(){
   const types=D.recTypes||DEFAULT_REC_TYPES;
   document.getElementById('recTypeList').innerHTML=types.map((t,i)=>`
-    <div style="display:flex;align-items:center;gap:6px;background:var(--green-pale);color:var(--green);padding:5px 11px;border-radius:20px;font-size:.79rem;font-weight:500">
-      ${t}<button onclick="removeRecType(${i})" style="background:none;border:none;color:inherit;cursor:pointer;font-size:.9rem;padding:0;line-height:1">×</button>
+    <div draggable="true" data-idx="${i}"
+         ondragstart="listDndStart(event,'rectype',${i})"
+         ondragover="listDndOver(event)"
+         ondragleave="listDndLeave(event)"
+         ondrop="listDndDrop(event,'rectype',${i})"
+         style="display:flex;align-items:center;gap:5px;background:var(--green-pale);color:var(--green);padding:5px 11px;border-radius:20px;font-size:.79rem;font-weight:500;cursor:grab;border:1.5px solid transparent">
+      <span style="font-size:.68rem;opacity:.4">⠿</span>${t}
+      <button onclick="removeRecType(${i})" style="background:none;border:none;color:inherit;cursor:pointer;font-size:.9rem;padding:0;line-height:1">×</button>
     </div>`).join('');
 }
 async function addRecType(){
@@ -3196,6 +3241,7 @@ function renderAll(){
   if(active==='publications') rPublications();
   if(active==='resources') rResources();
   if(active==='analytics') rAnalytics();
+  if(active==='collab') rCollabMap();
 }
 
 /* ══════════════════════════════════════════════════
@@ -4261,6 +4307,7 @@ const NAV_TABS=[
   {id:'publications',label:'Publications',alwaysOn:false},
   {id:'resources', label:'Resources',    alwaysOn:false},
   {id:'analytics', label:'Analytics',    alwaysOn:false},
+  {id:'collab',   label:'Collab Map',   alwaysOn:false},
 ];
 function applyHiddenTabs(){
   const hidden=new Set(D.hiddenTabs||['publications']);
@@ -4644,6 +4691,80 @@ async function toggleHeroSection(){
   D.heroVisible = D.heroVisible === false ? true : false;
   applyHeroVisibility();
   await saveToFirebase();
+}
+
+/* ══════════════════════════════════════════════════
+   COLLABORATION MAP
+══════════════════════════════════════════════════ */
+function rCollabMap(){
+  if(!D) return;
+  // Collect all partners from all projects
+  const partnerMap={}; // "Name, City, Country" → {name,city,country,projects:[]}
+  D.projects.forEach(p=>{
+    (p.partners||[]).forEach(raw=>{
+      const parts=raw.split(',').map(s=>s.trim());
+      const name=parts[0]||raw;
+      const city=parts[1]||'';
+      const country=parts[2]||'';
+      const key=name+'|'+city;
+      if(!partnerMap[key]) partnerMap[key]={name,city,country,projects:[]};
+      partnerMap[key].projects.push(p.title);
+    });
+  });
+  const partners=Object.values(partnerMap);
+
+  // Partner list
+  const listEl=document.getElementById('partnerList');
+  if(!partners.length){
+    if(listEl) listEl.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🗺</div><p>No partner institutions yet.<br>Add them in project edit forms.</p></div>';
+    document.getElementById('collabMapFrame').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:.9rem">No partner data yet</div>';
+    return;
+  }
+  if(listEl){
+    listEl.innerHTML=partners.map(p=>`
+      <div style="background:var(--white);border:1px solid var(--border);border-radius:12px;padding:16px 20px;display:flex;gap:12px;align-items:flex-start">
+        <div style="font-size:1.4rem;flex-shrink:0">🏛</div>
+        <div>
+          <div style="font-weight:600;font-size:.92rem">${p.name}</div>
+          <div style="font-size:.78rem;color:var(--muted);margin-top:2px">${[p.city,p.country].filter(Boolean).join(', ')}</div>
+          <div style="font-size:.73rem;color:var(--green-l);margin-top:4px">${p.projects.join(' · ')}</div>
+        </div>
+      </div>`).join('');
+  }
+
+  // Build Google Maps embed URL with all locations as search query
+  const queries=partners.map(p=>[p.name,p.city,p.country].filter(Boolean).join(' ')).slice(0,10);
+  // Use first location as center, rest as additional pins
+  const mapFrame=document.getElementById('collabMapFrame');
+  if(!mapFrame) return;
+
+  if(queries.length===1){
+    // Single location — embed map
+    const q=encodeURIComponent(queries[0]);
+    mapFrame.innerHTML=`<iframe width="100%" height="420" frameborder="0" style="border:0" loading="lazy"
+      src="https://www.google.com/maps/embed/v1/search?key=AIzaSyBGR0xDhOwLgiL94yYp6vpYGejLDLTGd8I&q=${q}" allowfullscreen></iframe>`;
+  } else {
+    // Multiple locations — show styled list with map search links
+    mapFrame.innerHTML=`
+      <div style="padding:24px;height:100%;overflow-y:auto;background:var(--bg)">
+        <p style="font-size:.85rem;color:var(--muted);margin-bottom:16px">Click a location to open in Google Maps:</p>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          ${partners.map((p,i)=>{
+            const q=encodeURIComponent([p.name,p.city,p.country].filter(Boolean).join(', '));
+            return `<a href="https://www.google.com/maps/search/${q}" target="_blank"
+              style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--white);border:1px solid var(--border);border-radius:9px;text-decoration:none;color:var(--text);transition:box-shadow .15s"
+              onmouseover="this.style.boxShadow='0 2px 12px rgba(0,0,0,.08)'" onmouseout="this.style.boxShadow=''">
+              <span style="font-size:1.2rem">📍</span>
+              <div>
+                <div style="font-weight:500;font-size:.88rem">${p.name}</div>
+                <div style="font-size:.74rem;color:var(--muted)">${[p.city,p.country].filter(Boolean).join(', ')}</div>
+              </div>
+              <span style="margin-left:auto;font-size:.72rem;color:var(--muted)">Open Maps →</span>
+            </a>`;
+          }).join('')}
+        </div>
+      </div>`;
+  }
 }
 
 /* ══════════════════════════════════════════════════
