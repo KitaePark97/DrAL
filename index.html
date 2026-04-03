@@ -526,6 +526,15 @@ body.dark .fg input,.dark .fg select,.dark .fg textarea{background:var(--white);
 .orcid-sync-dot.done{background:#16a34a}
 .orcid-sync-dot.error{background:#dc2626}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* Theme color overrides via CSS vars */
+:root.theme-custom {
+  --green: var(--theme-primary);
+  --green-l: var(--theme-primary-light);
+  --green-pale: var(--theme-primary-pale);
+  --gold: var(--theme-accent);
+  --gold-pale: var(--theme-accent-pale);
+}
 </style>
 </head>
 <body>
@@ -577,6 +586,7 @@ const FIREBASE_CONFIG = {
     <button id="darkToggle" class="nbtn" onclick="toggleDark()" title="Dark Mode" style="font-size:1rem;padding:6px 10px">🌙</button>
     <div class="save-indicator" id="saveIndicator">✓ Saved</div>
     <button id="heroNavToggle" onclick="toggleHeroSection()" class="admin-btn" style="display:none" title="Show/Hide hero banner">👁 Hero</button>
+    <button id="themeBtn" onclick="openThemePicker()" class="admin-btn" style="display:none">🎨</button>
     <button id="navMgrBtn" onclick="openNavManager()" class="admin-btn" style="display:none">⚙ Tabs</button>
     <button class="admin-btn" id="adminBtn" onclick="adminToggle()">
       <span id="adminIcon">🔒</span><span id="adminLabel">Admin</span>
@@ -863,6 +873,7 @@ const FIREBASE_CONFIG = {
 <footer>
   <div id="footerLine1" style="color:rgba(255,255,255,.9);font-weight:600"></div>
   <div id="footerLine2" style="margin-top:5px;color:rgba(255,255,255,.6)"></div>
+  <div id="footerEmail" style="display:none;margin-top:5px"><a id="footerEmailLink" href="#" style="color:rgba(255,255,255,.5);font-size:.78rem">✉ </a></div>
   <a id="footerLinkedIn" href="#" target="_blank" style="color:rgba(255,255,255,.45);margin-top:8px;display:none;font-size:.78rem">in LinkedIn</a>
   <div id="footerAdminBtn" style="display:none;margin-top:10px">
     <button onclick="openFooterEdit()" style="background:rgba(255,255,255,.12);border:1px dashed rgba(255,255,255,.35);color:rgba(255,255,255,.7);padding:5px 14px;border-radius:8px;font-size:.72rem;cursor:pointer">✏️ Edit Footer</button>
@@ -881,6 +892,9 @@ const FIREBASE_CONFIG = {
     </div>
     <div class="fg"><label>Line 2 — Department / subtitle</label>
       <input id="ffLine2" type="text" placeholder="Department of Landscape Architecture & Urban Planning · College of Architecture">
+    </div>
+    <div class="fg"><label>Email <span style="font-weight:400;color:var(--muted)">(optional — shown in footer)</span></label>
+      <input id="ffEmail" type="email" placeholder="dral@tamu.edu">
     </div>
     <div class="fg"><label>LinkedIn URL <span style="font-weight:400;color:var(--muted)">(leave blank to hide)</span></label>
       <input id="ffLinkedIn" type="url" placeholder="https://www.linkedin.com/in/…">
@@ -904,6 +918,44 @@ const FIREBASE_CONFIG = {
       <button class="add-btn" onclick="addDept()">+ Add</button>
     </div>
     <div class="factions"><button class="btn-cancel" onclick="closeModal('deptManagerModal')">Done</button></div>
+  </div>
+</div>
+
+<!-- Theme Picker -->
+<div class="overlay" id="themeModal" onclick="if(event.target===this)closeModal('themeModal')">
+  <div class="modal" style="max-width:520px">
+    <button class="modal-x" onclick="closeModal('themeModal')">×</button>
+    <h3>🎨 Site Theme</h3>
+    <p style="font-size:.83rem;color:var(--muted);margin-bottom:18px">Choose a preset theme or set custom colors for the entire site.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px" id="themePresets"></div>
+    <div style="padding-top:16px;border-top:1px solid var(--border)">
+      <label style="font-size:.77rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);display:block;margin-bottom:12px">Custom Colors</label>
+      <div class="fr">
+        <div class="fg"><label>Primary (green)</label>
+          <div style="display:flex;gap:8px">
+            <input type="color" id="thPrimary" value="#2d4a3e" style="width:44px;height:38px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;padding:2px">
+            <input type="text" id="thPrimaryHex" value="#2d4a3e" style="flex:1;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:monospace;font-size:.85rem;outline:none">
+          </div>
+        </div>
+        <div class="fg"><label>Accent (gold)</label>
+          <div style="display:flex;gap:8px">
+            <input type="color" id="thAccent" value="#b8873f" style="width:44px;height:38px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;padding:2px">
+            <input type="text" id="thAccentHex" value="#b8873f" style="flex:1;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:monospace;font-size:.85rem;outline:none">
+          </div>
+        </div>
+      </div>
+      <div class="fg"><label>Background</label>
+        <div style="display:flex;gap:8px">
+          <input type="color" id="thBg" value="#f5f2ec" style="width:44px;height:38px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;padding:2px">
+          <input type="text" id="thBgHex" value="#f5f2ec" style="flex:1;padding:8px;border:1.5px solid var(--border);border-radius:8px;font-family:monospace;font-size:.85rem;outline:none">
+        </div>
+      </div>
+    </div>
+    <div class="factions">
+      <button class="btn-cancel" onclick="resetTheme()">↺ Reset Default</button>
+      <button class="btn-cancel" onclick="closeModal('themeModal')">Cancel</button>
+      <button class="btn-save" onclick="applyCustomTheme()">Apply Theme</button>
+    </div>
   </div>
 </div>
 
@@ -1720,6 +1772,7 @@ function adminToggle(){
     document.querySelectorAll('.admin-only').forEach(el=>el.style.display='none');
     document.getElementById('footerAdminBtn').style.display='none';
     document.getElementById('navMgrBtn').style.display='none';
+    document.getElementById('themeBtn').style.display='none';
     document.getElementById('heroNavToggle').style.display='none';
     renderAll();
   } else {
@@ -1743,6 +1796,7 @@ function checkPw(){
     document.querySelectorAll('.admin-only').forEach(el=>el.style.display='flex');
     document.getElementById('footerAdminBtn').style.display='block';
     document.getElementById('navMgrBtn').style.display='inline-flex';
+    document.getElementById('themeBtn').style.display='inline-flex';
     document.getElementById('heroNavToggle').style.display='inline-flex';
     renderAll();
   } else {
@@ -1782,15 +1836,13 @@ function renderAbout(){
   const li=document.getElementById('linkedinLink');
   if(a.linkedin){li.href=a.linkedin;li.style.display='inline-block';}else{li.style.display='none';}
   document.getElementById('aboutCards').innerHTML=[
-    {icon:'🏫',num:'Texas A&M',lbl:'University',     link:'https://www.tamu.edu',        ext:true},
-    {icon:'👥',num:D.members.filter(m=>m.status==='Active').length+'+',lbl:'Active Members', page:'members'},
-    {icon:'🔬',num:D.projects.filter(p=>p.status!=='Completed').length+'+',lbl:'Research Projects',page:'projects'},
-    {icon:'📄',num:'100+',lbl:'Publications',         page:'publications'},
-  ].map(({icon,num,lbl,link,ext,page})=>{
-    const click = link ? `onclick="window.open('${link}','_blank')"` :
-                  page ? `onclick="goto('${page}',document.querySelector('.nbtn[onclick*=\'${page}\']'))"` : '';
-    return `<div class="acard" style="${link||page?'cursor:pointer':''}" ${click}><div class="acard-icon">${icon}</div><div class="acard-num">${num}</div><div class="acard-lbl">${lbl}</div></div>`;
-  }).join('');
+    {icon:'🏫',num:'Texas A&M',lbl:'University',     action:`window.open('https://www.tamu.edu','_blank')`},
+    {icon:'👥',num:D.members.filter(m=>m.status==='Active').length+'+',lbl:'Active Members', action:`gotoPage('members')`},
+    {icon:'🔬',num:D.projects.filter(p=>p.status!=='Completed').length+'+',lbl:'Research Projects',action:`gotoPage('projects')`},
+    {icon:'📄',num:'100+',lbl:'Publications',         action:`gotoPage('publications')`},
+  ].map(({icon,num,lbl,action})=>
+    `<div class="acard" style="cursor:pointer" onclick="${action}"><div class="acard-icon">${icon}</div><div class="acard-num">${num}</div><div class="acard-lbl">${lbl}</div></div>`
+  ).join('');
   if(isAdmin){
     document.querySelectorAll('.admin-only').forEach(el=>el.style.display='flex');
     document.getElementById('editContactBtn').style.display='block';
@@ -2029,12 +2081,11 @@ function openMemberForm(id=null){
  * Falls back to base64 if Storage is not available.
  */
 async function uploadImageToStorage(file, folder='uploads', maxW=1200, maxH=1000, quality=0.85){
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onload = e => {
       const img = new Image();
-      img.onload = async () => {
-        // Resize
+      img.onload = () => {
         let w = img.width, h = img.height;
         if(w > maxW){ h = Math.round(h*maxW/w); w = maxW; }
         if(h > maxH){ w = Math.round(w*maxH/h); h = maxH; }
@@ -2042,32 +2093,41 @@ async function uploadImageToStorage(file, folder='uploads', maxW=1200, maxH=1000
         canvas.width = w; canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
 
-        // Convert to blob
         canvas.toBlob(async blob => {
-          if(IS_CONFIGURED && storage) {
-            // Upload to Firebase Storage
-            const ext = 'jpg';
-            const path = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-            try {
+          // Try Firebase Storage first
+          if(IS_CONFIGURED && storage){
+            try{
+              const path = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2,8)}.jpg`;
               const ref = STORAGE_REF.child(path);
-              const snap = await ref.put(blob, { contentType: 'image/jpeg' });
-              const url = await snap.ref.getDownloadURL();
-              resolve(url);
-            } catch(err) {
-              console.warn('Storage upload failed, falling back to base64:', err);
-              // Fallback: base64 (may hit Firestore limit for large images)
-              const reader2 = new FileReader();
-              reader2.onload = ev => resolve(ev.target.result);
-              reader2.readAsDataURL(blob);
+              const task = ref.put(blob, {contentType:'image/jpeg'});
+              task.on('state_changed', null,
+                async (err) => {
+                  // Storage failed — show clear message and use base64 fallback
+                  console.warn('Firebase Storage upload failed:', err.code, err.message);
+                  if(err.code === 'storage/unauthorized'){
+                    alert('📸 Image upload blocked.\n\nFix: Go to Firebase Console → Storage → Rules\nSet:\n  allow read, write: if true;\n\nUsing compressed local preview for now (may not persist).');
+                  }
+                  const r2 = new FileReader();
+                  r2.onload = ev => resolve(ev.target.result);
+                  r2.readAsDataURL(blob);
+                },
+                async () => {
+                  const url = await task.snapshot.ref.getDownloadURL();
+                  resolve(url);
+                }
+              );
+              return;
+            }catch(e){
+              console.warn('Storage init error:', e);
             }
-          } else {
-            // No storage: use base64
-            const reader2 = new FileReader();
-            reader2.onload = ev => resolve(ev.target.result);
-            reader2.readAsDataURL(blob);
           }
+          // Fallback: base64
+          const r2 = new FileReader();
+          r2.onload = ev => resolve(ev.target.result);
+          r2.readAsDataURL(blob);
         }, 'image/jpeg', quality);
       };
+      img.onerror = () => resolve(null);
       img.src = e.target.result;
     };
     reader.readAsDataURL(file);
@@ -2415,6 +2475,7 @@ function openRecTypeManager(){
   renderFooter();
   applyHeroVisibility();
   applyHiddenTabs();
+  initTheme();
   initAboutGallery();
   renderRecTypeList();
   openModal('recTypeModal');
@@ -2544,11 +2605,11 @@ function rRec(){
     return `
     <div class="rc ${r.urgent&&!isClosed?'urg':''} ${isClosed?'closed-pos':''}" data-recid="${r.id}" data-id="${r.id}" draggable="true"
          ondragstart="dndStart(event,'rec',${r.id})"
-         ondragover="dndOver(event)"
+         ondragover="dndOver(event);event.stopPropagation()"
          ondragleave="dndLeave(event)"
-         ondrop="dndDrop(event,'rec')"
+         ondrop="dndDrop(event,'rec');event.stopPropagation()"
          ondragend="dndEnd(event,'rec')">
-      <div class="drag-handle" title="Drag to reorder">⠿</div>
+      <div class="drag-handle" onclick="event.stopPropagation()" title="Drag to reorder">⠿</div>
       ${isAdmin?`<div style="position:absolute;top:14px;right:14px;display:flex;gap:5px"><button class="ica ica-edit" onclick="openRecForm(${r.id})">✏️</button><button class="ica ica-del" onclick="confirmDelete('rec',${r.id})">🗑</button></div>`:''}
       <div class="rc-top">
         <div style="flex:1">
@@ -3672,7 +3733,12 @@ async function syncOrcidPublications(){
   if(!D.publications) D.publications=[];
   const existingDois=new Set(D.publications.map(p=>p.doi).filter(Boolean));
 
-  for(let [name, orcid] of orcidIds){
+  // Build reverse map: orcid → name for bold highlighting
+  const orcidToName=Object.fromEntries(Object.entries(ORCID_MAP).map(([n,o])=>[o,n]));
+
+  for(let i=0; i<orcidIds.length; i++){
+    const [name, orcid] = orcidIds[i];
+    msg.textContent=`Fetching ${name}… (${i+1}/${orcidIds.length})`;
     try{
       const resp=await fetch(`https://pub.orcid.org/v3.0/${orcid}/works`,{
         headers:{'Accept':'application/json'}
@@ -3690,17 +3756,43 @@ async function syncOrcidPublications(){
         const extIds=summary['external-ids']?.['external-id']||[];
         const doiObj=extIds.find(e=>e['external-id-type']==='doi');
         const doi=doiObj?'https://doi.org/'+doiObj['external-id-value']:null;
-        // Skip if DOI already exists
         if(doi&&existingDois.has(doi)) continue;
-        // Map ORCID type to our type
+
         let mappedType='journal';
         if(type.includes('conference')||type.includes('proceedings')) mappedType='conference';
         else if(type.includes('report')||type.includes('dissertation')) mappedType='report';
 
+        // Fetch full work record for complete contributor list
+        const putCode=summary['put-code'];
+        let authorList=name; // fallback to queried name
+        try{
+          const fullResp=await fetch(`https://pub.orcid.org/v3.0/${orcid}/work/${putCode}`,{
+            headers:{'Accept':'application/json'}
+          });
+          if(fullResp.ok){
+            const full=await fullResp.json();
+            const contributors=full.contributors?.contributor||[];
+            if(contributors.length>0){
+              authorList=contributors.map(con=>{
+                // Contributor name
+                const cName=con['credit-name']?.value
+                  ||(con['contributor-orcid']?.path
+                     ? orcidToName[con['contributor-orcid'].path]||null
+                     : null);
+                return cName||null;
+              }).filter(Boolean).join(', ');
+            } else {
+              // No contributors listed — use queried name
+              authorList=name;
+            }
+          }
+        }catch(e2){ /* use fallback */ }
+
         const pub={
           id:'orcid-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),
           title,
-          authors:name, // will be enriched below
+          authors:authorList,
+          labOrcid:orcid,   // for bold highlighting
           year,
           type:mappedType,
           venue:summary['journal-title']?.value||null,
@@ -3717,7 +3809,6 @@ async function syncOrcidPublications(){
       console.warn('ORCID fetch error for',orcid,e);
       errorCount++;
     }
-    msg.textContent=`Fetching… (${orcidIds.indexOf([name,orcid])+1}/${orcidIds.length})`;
   }
 
   // Save and update last sync time
@@ -3730,6 +3821,19 @@ async function syncOrcidPublications(){
   msg.textContent=`Sync complete — ${newCount} new publications added${errorCount>0?' ('+errorCount+' errors)':''}`;
   lastSync.textContent='Last synced: '+new Date().toLocaleString();
   rPublications();
+}
+
+function highlightLabAuthors(authorStr, labOrcid){
+  if(!authorStr) return '';
+  let result = authorStr;
+  // Bold-highlight any name that matches a lab member
+  Object.keys(ORCID_MAP).forEach(name => {
+    // Match last name or full name
+    const lastName = name.split(' ').pop();
+    const re = new RegExp('('+name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')', 'gi');
+    result = result.replace(re, '<strong style="color:var(--green)">$1</strong>');
+  });
+  return result;
 }
 
 function showOrcidSyncStatus(){
@@ -3796,7 +3900,7 @@ function rPublications(){
         <div class="pub-card">
           ${isAdmin?`<div style="position:absolute;top:12px;right:14px;display:flex;gap:4px"><button class="ica ica-edit" onclick="openPubForm('${p.id}')">✏️</button><button class="ica ica-del" onclick="confirmDelete('pub','${p.id}')">🗑</button></div>`:''}
           <div class="pub-title">${p.title}</div>
-          <div class="pub-authors" style="color:var(--muted);font-size:.79rem;margin-bottom:3px">${p.authors||''}</div>
+          <div class="pub-authors" style="color:var(--muted);font-size:.79rem;margin-bottom:3px">${highlightLabAuthors(p.authors||'',p.labOrcid)}</div>
           <div class="pub-venue">${p.venue||''}</div>
           <div class="pub-links">
             ${p.doi?`<a class="pub-link" href="${p.doi}" target="_blank">🔗 DOI</a>`:''}
@@ -4216,6 +4320,7 @@ function dndDrop(e, type){
   const arr = type==='member' ? D.members : (type==='rec' ? D.recruiting : D.projects);
 
   const gridId = type==='member' ? 'mGrid' : (type==='rec' ? 'rGrid' : 'pGrid');
+  if(!arr) return;
   const domOrder = [...document.querySelectorAll('#'+gridId+' [data-id]')]
     .map(el => parseInt(el.dataset.id));
 
@@ -4315,6 +4420,84 @@ async function removeDept(i){
 }
 
 /* ══════════════════════════════════════════════════
+   THEME COLORS
+══════════════════════════════════════════════════ */
+const THEME_PRESETS=[
+  {name:'Forest (Default)', primary:'#2d4a3e', accent:'#b8873f', bg:'#f5f2ec'},
+  {name:'Ocean Blue',       primary:'#1e3a5f', accent:'#d4a017', bg:'#f0f4f8'},
+  {name:'Burgundy',         primary:'#5c1a1a', accent:'#c49a6c', bg:'#fdf5f0'},
+  {name:'Slate',            primary:'#334155', accent:'#e67e22', bg:'#f8fafc'},
+  {name:'Plum',             primary:'#4a1a5c', accent:'#c0a060', bg:'#faf5ff'},
+  {name:'Teal',             primary:'#0d4f4a', accent:'#e8a030', bg:'#f0fafa'},
+];
+
+function hexToRgb(hex){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return {r,g,b};
+}
+function lighten(hex,factor=0.85){
+  const {r,g,b}=hexToRgb(hex);
+  return '#'+[r,g,b].map(v=>Math.round(v+(255-v)*factor).toString(16).padStart(2,'0')).join('');
+}
+function lighten2(hex,factor=0.92){return lighten(hex,factor);}
+
+function applyThemeColors(primary,accent,bg){
+  const root=document.documentElement;
+  root.style.setProperty('--green',primary);
+  root.style.setProperty('--green-l',lighten(primary,0.3));
+  root.style.setProperty('--green-pale',lighten2(primary,0.88));
+  root.style.setProperty('--gold',accent);
+  root.style.setProperty('--gold-pale',lighten2(accent,0.88));
+  root.style.setProperty('--bg',bg);
+}
+
+function openThemePicker(){
+  const th=D.theme||{};
+  // Populate presets
+  document.getElementById('themePresets').innerHTML=THEME_PRESETS.map((t,i)=>`
+    <div onclick="pickThemePreset(${i})" style="cursor:pointer;padding:10px 14px;border-radius:10px;border:2px solid ${th.primary===t.primary?'var(--gold)':'var(--border)'};background:${t.bg};display:flex;align-items:center;gap:8px;min-width:140px;transition:all .15s">
+      <div style="width:14px;height:14px;border-radius:50%;background:${t.primary}"></div>
+      <div style="width:14px;height:14px;border-radius:50%;background:${t.accent}"></div>
+      <span style="font-size:.78rem;font-weight:500;color:${t.primary}">${t.name}</span>
+    </div>`).join('');
+  document.getElementById('thPrimary').value=th.primary||'#2d4a3e';
+  document.getElementById('thPrimaryHex').value=th.primary||'#2d4a3e';
+  document.getElementById('thAccent').value=th.accent||'#b8873f';
+  document.getElementById('thAccentHex').value=th.accent||'#b8873f';
+  document.getElementById('thBg').value=th.bg||'#f5f2ec';
+  document.getElementById('thBgHex').value=th.bg||'#f5f2ec';
+  openModal('themeModal');
+}
+function pickThemePreset(i){
+  const t=THEME_PRESETS[i];
+  document.getElementById('thPrimary').value=t.primary;
+  document.getElementById('thPrimaryHex').value=t.primary;
+  document.getElementById('thAccent').value=t.accent;
+  document.getElementById('thAccentHex').value=t.accent;
+  document.getElementById('thBg').value=t.bg;
+  document.getElementById('thBgHex').value=t.bg;
+  applyThemeColors(t.primary,t.accent,t.bg);
+}
+async function applyCustomTheme(){
+  const primary=document.getElementById('thPrimaryHex').value.trim()||document.getElementById('thPrimary').value;
+  const accent=document.getElementById('thAccentHex').value.trim()||document.getElementById('thAccent').value;
+  const bg=document.getElementById('thBgHex').value.trim()||document.getElementById('thBg').value;
+  D.theme={primary,accent,bg};
+  applyThemeColors(primary,accent,bg);
+  await saveToFirebase();
+  closeModal('themeModal');
+}
+async function resetTheme(){
+  delete D.theme;
+  applyThemeColors('#2d4a3e','#b8873f','#f5f2ec');
+  await saveToFirebase();
+  closeModal('themeModal');
+}
+function initTheme(){
+  if(D&&D.theme) applyThemeColors(D.theme.primary,D.theme.accent,D.theme.bg);
+}
+
+/* ══════════════════════════════════════════════════
    FOOTER + HERO VISIBILITY
 ══════════════════════════════════════════════════ */
 function renderFooter(){
@@ -4326,12 +4509,14 @@ function renderFooter(){
   if(l1) l1.textContent=f.line1||'';
   if(l2) l2.textContent=f.line2||'';
   if(li){
-    if(f.linkedin){
-      li.href=f.linkedin;
-      li.style.display='inline-block';
-    } else {
-      li.style.display='none';
-    }
+    if(f.linkedin){ li.href=f.linkedin; li.style.display='inline-block'; }
+    else { li.style.display='none'; }
+  }
+  const emailDiv=document.getElementById('footerEmail');
+  const emailLink=document.getElementById('footerEmailLink');
+  if(emailDiv&&emailLink){
+    if(f.email){ emailDiv.style.display='block'; emailLink.href='mailto:'+f.email; emailLink.textContent='✉ '+f.email; }
+    else { emailDiv.style.display='none'; }
   }
 }
 
@@ -4339,6 +4524,7 @@ function openFooterEdit(){
   const f=D.footer||{};
   document.getElementById('ffLine1').value=f.line1||'';
   document.getElementById('ffLine2').value=f.line2||'';
+  document.getElementById('ffEmail').value=f.email||'';
   document.getElementById('ffLinkedIn').value=f.linkedin||'';
   openModal('footerModal');
 }
@@ -4347,6 +4533,7 @@ async function saveFooter(){
   D.footer={
     line1: document.getElementById('ffLine1').value.trim(),
     line2: document.getElementById('ffLine2').value.trim(),
+    email: document.getElementById('ffEmail').value.trim()||null,
     linkedin: document.getElementById('ffLinkedIn').value.trim()||null,
   };
   await saveToFirebase();
