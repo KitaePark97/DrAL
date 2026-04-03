@@ -12,6 +12,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
 <style>
@@ -615,6 +616,7 @@ const FIREBASE_CONFIG = {
     <div class="save-indicator" id="saveIndicator">✓ Saved</div>
     <button id="heroNavToggle" onclick="toggleHeroSection()" class="admin-btn" style="display:none" title="Show/Hide hero banner">👁 Hero</button>
     <button id="themeBtn" onclick="openThemePicker()" class="admin-btn" style="display:none">🎨</button>
+    <button id="changelogBtn" onclick="openChangelog()" class="admin-btn" style="display:none">📋 Log</button>
     <button id="navMgrBtn" onclick="openNavManager()" class="admin-btn" style="display:none">⚙ Tabs</button>
     <button class="admin-btn" id="adminBtn" onclick="adminToggle()">
       <span id="adminIcon">🔒</span><span id="adminLabel">Admin</span>
@@ -724,6 +726,9 @@ const FIREBASE_CONFIG = {
     <span>🟢 Admin Mode — Use ✏️/🗑 buttons to edit/delete, or add a new member</span>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="add-btn" style="background:#6b7280" onclick="resetMemberOrder()">↺ Reset Order</button>
+      <button class="add-btn" style="background:#475569" onclick="exportCSV('members')">↓ CSV</button>
+      <button class="add-btn" style="background:#475569" onclick="triggerCSVImport('members')">↑ Import</button>
+      <input type="file" id="csvImportInput" accept=".csv" style="display:none" onchange="importCSV(event)">
       <button class="add-btn" style="background:#0369a1" onclick="openDeptManager()">⚙ Departments</button>
       <button class="add-btn" style="background:#0369a1" onclick="openRoleManager()">⚙ Manage Roles</button>
       <button class="add-btn" onclick="openMemberForm()">+ Add Member</button>
@@ -745,6 +750,8 @@ const FIREBASE_CONFIG = {
     <span>🟢 Admin Mode — Edit projects, manage team members, add new projects</span>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="add-btn" style="background:#6b7280" onclick="resetProjectOrder()">↺ Reset Order</button>
+      <button class="add-btn" style="background:#475569" onclick="exportCSV('projects')">↓ CSV</button>
+      <button class="add-btn" style="background:#475569" onclick="triggerCSVImport('projects')">↑ Import</button>
       <button class="add-btn" style="background:#0369a1" onclick="openTagManager()">⚙ Manage Tags</button>
       <button class="add-btn" onclick="openProjForm()">+ Add Project</button>
     </div>
@@ -752,6 +759,7 @@ const FIREBASE_CONFIG = {
   <div class="fbar" id="projectFilterBar">
     <input type="text" id="ps" placeholder="Search projects…" oninput="rProjects()">
     <button class="fb on" onclick="pf('all',this)">All</button>
+    <button onclick="shareProjectFilter()" style="margin-left:auto;padding:6px 13px;border:1.5px solid var(--border);border-radius:8px;font-size:.78rem;cursor:pointer;background:var(--white);color:var(--text);display:flex;align-items:center;gap:5px" title="Share current filter as URL">🔗 Share</button>
   </div>
   <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;align-items:center">
     <span style="font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600">Status</span>
@@ -1016,6 +1024,35 @@ const FIREBASE_CONFIG = {
   </div>
 </div>
 
+<!-- Changelog -->
+<div class="overlay" id="changelogModal" onclick="if(event.target===this)closeModal('changelogModal')">
+  <div class="modal" style="max-width:520px">
+    <button class="modal-x" onclick="closeModal('changelogModal')">×</button>
+    <h3>📋 Recent Changes</h3>
+    <p style="font-size:.83rem;color:var(--muted);margin-bottom:16px">Last 20 admin actions, stored in browser.</p>
+    <div id="changelogList" style="display:flex;flex-direction:column;gap:8px;max-height:55vh;overflow-y:auto"></div>
+    <div class="factions">
+      <button class="btn-cancel" onclick="clearChangelog()">Clear</button>
+      <button class="btn-cancel" onclick="closeModal('changelogModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- CSV Import Preview -->
+<div class="overlay" id="csvPreviewModal" onclick="if(event.target===this)closeModal('csvPreviewModal')">
+  <div class="modal wide" style="max-width:700px">
+    <button class="modal-x" onclick="closeModal('csvPreviewModal')">×</button>
+    <h3 id="csvPreviewTitle">Import Preview</h3>
+    <p style="font-size:.83rem;color:var(--muted);margin-bottom:12px">Review rows before importing. Existing items with the same ID will be updated.</p>
+    <div id="csvPreviewInfo" style="font-size:.82rem;color:var(--green);margin-bottom:12px;font-weight:500"></div>
+    <div id="csvPreviewTable" style="max-height:50vh;overflow:auto;border:1px solid var(--border);border-radius:8px"></div>
+    <div class="factions">
+      <button class="btn-cancel" onclick="closeModal('csvPreviewModal')">Cancel</button>
+      <button class="btn-save" id="csvImportConfirmBtn" onclick="confirmCSVImport()">Import</button>
+    </div>
+  </div>
+</div>
+
 <!-- Department Manager -->
 <div class="overlay" id="deptManagerModal" onclick="if(event.target===this)closeModal('deptManagerModal')">
   <div class="modal" style="max-width:420px">
@@ -1129,7 +1166,8 @@ const FIREBASE_CONFIG = {
     </div>
     <div class="fg"><label>Photo URL</label>
       <div style="display:flex;gap:8px;align-items:center">
-        <input id="mfPhotoUrl" type="url" placeholder="https://… (or leave blank for initials)">
+        <input id="mfPhotoUrl" type="url" placeholder="https://… or Google Drive share link" oninput="if(this.value.includes('drive.google.com')){const converted=convertGDriveUrl(this.value);if(converted!==this.value){this.value=converted;this.style.background='var(--green-pale)';}}">
+        <div style="font-size:.72rem;color:var(--muted);margin-top:3px">💡 Google Drive: share the file → "Anyone with link" (Viewer) → copy link. Paste here, it auto-converts.</div>
         <label style="text-transform:none;letter-spacing:0;font-size:.78rem;cursor:pointer;background:var(--bg);border:1px solid var(--border);padding:8px 12px;border-radius:8px;white-space:nowrap">
           📁 Upload<input type="file" accept="image/*" onchange="handlePhotoUpload(this)" style="display:none">
         </label>
@@ -1183,7 +1221,7 @@ const FIREBASE_CONFIG = {
       <label>Photos (1:1) <span style="font-weight:400;color:var(--muted)">(multiple photos allowed)</span></label>
       <div id="pfPhotoList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <input id="pfPhotoUrl" type="url" placeholder="https://… (recommended — paste image URL)" style="flex:1;min-width:140px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none">
+        <input id="pfPhotoUrl" type="url" placeholder="https://… or Google Drive share link" style="flex:1;min-width:140px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none">
         <button type="button" onclick="addProjPhotoUrl()" style="background:var(--green);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:.82rem;cursor:pointer;white-space:nowrap">+ URL</button>
         <label style="font-size:.82rem;cursor:pointer;background:var(--bg);border:1px solid var(--border);padding:8px 12px;border-radius:8px;white-space:nowrap;display:flex;align-items:center">
           📁 Upload<input type="file" accept="image/*" multiple onchange="addProjPhotoFiles(this)" style="display:none">
@@ -1228,7 +1266,7 @@ const FIREBASE_CONFIG = {
     </div>
     <div class="fg"><label>Photo / Cover Image</label>
       <div style="display:flex;gap:8px;align-items:center">
-        <input id="rfPhoto" type="url" placeholder="https://… (image URL)">
+        <input id="rfPhoto" type="url" placeholder="https://… or Google Drive share link">
         <label style="text-transform:none;letter-spacing:0;font-size:.78rem;cursor:pointer;background:var(--bg);border:1px solid var(--border);padding:8px 12px;border-radius:8px;white-space:nowrap">
           📁 Upload<input type="file" accept="image/*" onchange="handleRecPhotoUpload(this)" style="display:none">
         </label>
@@ -1262,7 +1300,7 @@ const FIREBASE_CONFIG = {
       <label>Photos <span style="font-weight:400;color:var(--muted)">(multiple photos allowed — recommend using URLs for large images)</span></label>
       <div id="nfPhotoList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <input id="nfPhotoUrl" type="url" placeholder="https://… (recommended — paste image URL)" style="flex:1;min-width:160px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none">
+        <input id="nfPhotoUrl" type="url" placeholder="https://… or Google Drive share link" style="flex:1;min-width:160px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none">
         <button type="button" onclick="addNewsPhotoUrl()" style="background:var(--green);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:.82rem;cursor:pointer;white-space:nowrap">+ URL</button>
         <label style="text-transform:none;letter-spacing:0;font-size:.82rem;cursor:pointer;background:var(--bg);border:1px solid var(--border);padding:8px 12px;border-radius:8px;white-space:nowrap;display:flex;align-items:center">
           📁 Upload<input type="file" accept="image/*" multiple onchange="addNewsPhotoFiles(this)" style="display:none">
@@ -1307,7 +1345,7 @@ const FIREBASE_CONFIG = {
       <label>About Gallery Photos <span style="font-weight:400;color:var(--muted)">(displayed at top of About page)</span></label>
       <div id="afPhotoList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <input id="afPhotoUrl" type="url" placeholder="https://… (image URL)" style="flex:1;min-width:140px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none">
+        <input id="afPhotoUrl" type="url" placeholder="https://… or Google Drive share link" style="flex:1;min-width:140px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none">
         <button type="button" onclick="addAboutPhotoUrl()" style="background:var(--green);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:.82rem;cursor:pointer">+ URL</button>
         <label style="font-size:.82rem;cursor:pointer;background:var(--bg);border:1px solid var(--border);padding:8px 12px;border-radius:8px;white-space:nowrap;display:flex;align-items:center">
           📁 Upload<input type="file" accept="image/*" multiple onchange="addAboutPhotoFiles(this)" style="display:none">
@@ -1373,7 +1411,7 @@ const FIREBASE_CONFIG = {
       <label style="display:block;font-size:.77rem;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:10px">🖼 Hero Gallery Photos <span style="text-transform:none;font-weight:400">(displayed as gallery on the right)</span></label>
       <div id="heroGalleryMgrList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;min-height:36px"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-        <input id="bgHeroPhotoUrl" type="url" placeholder="https://… (image URL)" style="flex:1;min-width:160px;padding:8px 11px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none">
+        <input id="bgHeroPhotoUrl" type="url" placeholder="https://… or Google Drive share link" style="flex:1;min-width:160px;padding:8px 11px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none">
         <button onclick="addHeroGalleryUrl()" style="background:var(--green);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:.8rem;cursor:pointer;white-space:nowrap">+ URL</button>
         <label style="font-size:.8rem;cursor:pointer;background:var(--bg);border:1px solid var(--border);padding:8px 12px;border-radius:8px;white-space:nowrap;display:flex;align-items:center">
           📁 Upload<input type="file" accept="image/*" multiple onchange="uploadHeroGalleryPhotos(this)" style="display:none">
@@ -1892,6 +1930,7 @@ function adminToggle(){
     document.querySelectorAll('.admin-only').forEach(el=>el.style.display='none');
     document.getElementById('footerAdminBtn').style.display='none';
     document.getElementById('navMgrBtn').style.display='none';
+    document.getElementById('changelogBtn').style.display='none';
     document.getElementById('themeBtn').style.display='none';
     document.getElementById('heroNavToggle').style.display='none';
     renderAll();
@@ -1916,6 +1955,7 @@ function checkPw(){
     document.querySelectorAll('.admin-only').forEach(el=>el.style.display='flex');
     document.getElementById('footerAdminBtn').style.display='block';
     document.getElementById('navMgrBtn').style.display='inline-flex';
+    document.getElementById('changelogBtn').style.display='inline-flex';
     document.getElementById('themeBtn').style.display='inline-flex';
     loadSubscriberCount();
     document.getElementById('heroNavToggle').style.display='inline-flex';
@@ -1980,7 +2020,7 @@ function renderAfPhotoList(){
 }
 function removeAfPhoto(i){ _afPhotos.splice(i,1); renderAfPhotoList(); }
 function addAboutPhotoUrl(){
-  const v=document.getElementById('afPhotoUrl').value.trim(); if(!v) return;
+  const v=processImageUrl(document.getElementById('afPhotoUrl').value.trim()); if(!v) return;
   _afPhotos.push(v); document.getElementById('afPhotoUrl').value=''; renderAfPhotoList();
 }
 async function addAboutPhotoFiles(input){
@@ -2337,12 +2377,13 @@ async function saveMember(){
     webpage:document.getElementById('mfWebpage').value.trim()||null,
     bio:document.getElementById('mfBio').value.trim()||null,
     currentAffiliation:document.getElementById('mfCurrentAffiliation').value.trim()||null,
-    photoUrl:document.getElementById('mfPhotoUrl').value.trim()||null,
+    photoUrl:processImageUrl(document.getElementById('mfPhotoUrl').value.trim())||null,
   };
   if(id){const i=D.members.findIndex(m=>m.id===id);D.members[i]=obj;}
   else{D.members.push(obj);}
   await saveToFirebase();
   btn.disabled=false; btn.textContent='Save Member';
+  logChange('Member saved', document.getElementById('mfId').value ? 'Updated: '+document.getElementById('mfName').value : 'Added: '+document.getElementById('mfName').value);
   closeModal('mFormModal'); rMembers(); renderStats();
 }
 
@@ -2574,6 +2615,7 @@ async function saveProject(){
   else{D.projects.push(obj);}
   await saveToFirebase();
   btn.disabled=false; btn.textContent='Save Project';
+  logChange('Project saved', document.getElementById('pfId').value ? 'Updated: '+document.getElementById('pfTitle').value : 'Added: '+document.getElementById('pfTitle').value);
   closeModal('pFormModal'); rProjects(); renderStats();
 }
 
@@ -2726,7 +2768,7 @@ function renderPfPhotoList(){
 }
 function removePfPhoto(idx){ _pfPhotos.splice(idx,1); renderPfPhotoList(); }
 function addProjPhotoUrl(){
-  const v=document.getElementById('pfPhotoUrl').value.trim(); if(!v) return;
+  const v=processImageUrl(document.getElementById('pfPhotoUrl').value.trim()); if(!v) return;
   _pfPhotos.push(v); document.getElementById('pfPhotoUrl').value=''; renderPfPhotoList();
 }
 async function addProjPhotoFiles(input){
@@ -2863,7 +2905,7 @@ async function saveRec(){
     status:document.getElementById('rfStatus').value,
     urgent:document.getElementById('rfUrgent').checked,
     link:document.getElementById('rfLink').value.trim()||null,
-    photoUrl:document.getElementById('rfPhoto').value.trim()||null,
+    photoUrl:processImageUrl(document.getElementById('rfPhoto').value.trim())||null,
   };
   if(id){const i=D.recruiting.findIndex(r=>r.id===id);D.recruiting[i]=obj;}
   else{D.recruiting.unshift(obj);}
@@ -3002,7 +3044,7 @@ function renderHeroGalleryMgr(){
     </div>`).join('');
 }
 async function addHeroGalleryUrl(){
-  const url=document.getElementById('bgHeroPhotoUrl').value.trim(); if(!url) return;
+  const url=processImageUrl(document.getElementById('bgHeroPhotoUrl').value.trim()); if(!url) return;
   if(!D.heroBgSettings) D.heroBgSettings={mode:'color',color:'#2d4a3e',textColor:'#ffffff',accentColor:'#a5d4c4',heroPhotos:[]};
   if(!D.heroBgSettings.heroPhotos) D.heroBgSettings.heroPhotos=[];
   D.heroBgSettings.heroPhotos.push(url);
@@ -3127,7 +3169,7 @@ function renderNfPhotoList(){
 }
 function removeNfPhoto(idx){ _nfPhotos.splice(idx,1); renderNfPhotoList(); }
 function addNewsPhotoUrl(){
-  const v=document.getElementById('nfPhotoUrl').value.trim();
+  const v=processImageUrl(document.getElementById('nfPhotoUrl').value.trim());
   if(!v) return;
   _nfPhotos.push(v);
   document.getElementById('nfPhotoUrl').value='';
@@ -3214,6 +3256,7 @@ async function saveNews(){
   }
   await saveToFirebase();
   btn.disabled=false; btn.textContent='Save News';
+  logChange('News saved', document.getElementById('nfTitle').value);
   closeModal('nFormModal'); rNews(); rCalendar();
 }
 
@@ -4092,6 +4135,9 @@ function rPublications(){
             ${p.pdf?`<a class="pub-link" href="${p.pdf}" target="_blank">📄 PDF</a>`:''}
             <span class="pub-badge">${({journal:'Journal',conference:'Conference',report:'Report'}[p.type])||p.type||'Article'}</span>
             ${p.source==='orcid'?'<span class="pub-badge" style="background:#e8f5e9;color:#2e7d32">ORCID</span>':''}
+            ${p.source==='openalex'?'<span class="pub-badge" style="background:#ede9fe;color:#5b21b6">OpenAlex</span>':''}
+            <button onclick="copyCitation('apa','${p.id}')" class="pub-link" title="Copy APA">APA</button>
+            <button onclick="copyCitation('bibtex','${p.id}')" class="pub-link" title="Copy BibTeX">BibTeX</button>
           </div>
         </div>`).join('')}
     </div>`).join('');
@@ -4748,6 +4794,40 @@ async function resetPageTitles(){
 }
 
 /* ══════════════════════════════════════════════════
+   GOOGLE DRIVE IMAGE URL CONVERTER
+   Converts any Google Drive share link to a direct image URL.
+   Works with:
+   - https://drive.google.com/file/d/FILE_ID/view
+   - https://drive.google.com/open?id=FILE_ID
+   - https://drive.google.com/uc?id=FILE_ID
+══════════════════════════════════════════════════ */
+function convertGDriveUrl(url){
+  if(!url) return url;
+  url = url.trim();
+  // Already a direct image or non-Drive URL
+  if(!url.includes('drive.google.com')) return url;
+  // Extract file ID
+  let fileId = null;
+  const patterns = [
+    /\/file\/d\/([a-zA-Z0-9_-]+)/,
+    /[?&]id=([a-zA-Z0-9_-]+)/,
+    /\/d\/([a-zA-Z0-9_-]+)\//,
+  ];
+  for(const re of patterns){
+    const m = url.match(re);
+    if(m){ fileId = m[1]; break; }
+  }
+  if(!fileId) return url; // can't parse, return as-is
+  // Use thumbnail URL which bypasses hotlink restrictions
+  return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1200`;
+}
+
+// Auto-convert Drive URLs before storing in any URL field
+function processImageUrl(url){
+  return convertGDriveUrl(url);
+}
+
+/* ══════════════════════════════════════════════════
    PUBLICATION BULK DELETE
 ══════════════════════════════════════════════════ */
 let _bulkSelected = new Set();
@@ -5162,6 +5242,301 @@ async function exportSubscribers(){
 }
 
 /* ══════════════════════════════════════════════════
+   CHANGELOG
+══════════════════════════════════════════════════ */
+const CHANGELOG_KEY = 'dral-changelog';
+function logChange(action, detail=''){
+  try{
+    const log = JSON.parse(localStorage.getItem(CHANGELOG_KEY)||'[]');
+    log.unshift({action, detail, time: new Date().toISOString(), user:'Admin'});
+    localStorage.setItem(CHANGELOG_KEY, JSON.stringify(log.slice(0,20)));
+  }catch(e){}
+}
+function openChangelog(){
+  const log = JSON.parse(localStorage.getItem(CHANGELOG_KEY)||'[]');
+  const list = document.getElementById('changelogList');
+  if(!log.length){
+    list.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted)">No changes recorded yet.</div>';
+  } else {
+    list.innerHTML = log.map(entry=>{
+      const d = new Date(entry.time);
+      const timeStr = d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' + d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+      return `<div style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:8px;background:var(--bg)">
+        <div style="width:8px;height:8px;border-radius:50%;background:var(--green);flex-shrink:0;margin-top:4px"></div>
+        <div>
+          <div style="font-weight:500;font-size:.86rem">${entry.action}</div>
+          ${entry.detail?`<div style="font-size:.78rem;color:var(--muted);margin-top:2px">${entry.detail}</div>`:''}
+          <div style="font-size:.72rem;color:var(--muted);margin-top:3px">${timeStr}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  openModal('changelogModal');
+}
+function clearChangelog(){
+  localStorage.removeItem(CHANGELOG_KEY);
+  openChangelog();
+}
+
+/* ══════════════════════════════════════════════════
+   CSV EXPORT / IMPORT
+══════════════════════════════════════════════════ */
+let _csvImportType = null;
+let _csvImportRows = [];
+
+const CSV_MEMBER_FIELDS = ['id','name','role','subRole','dept','email','status','advisor','bio','currentAffiliation','photoUrl','scholar','tamu','webpage','order'];
+const CSV_PROJECT_FIELDS = ['id','abbr','title','desc','pi','funding','tags','status','startYear','endYear','driveUrl','recruiting','partners'];
+
+function exportCSV(type){
+  const fields = type==='members' ? CSV_MEMBER_FIELDS : CSV_PROJECT_FIELDS;
+  const rows = type==='members' ? D.members : D.projects;
+  const lines = [fields.join(',')];
+  rows.forEach(row=>{
+    lines.push(fields.map(f=>{
+      let v = row[f];
+      if(Array.isArray(v)) v = v.join(';');
+      if(v==null) v='';
+      v=String(v).replace(/"/g,'""');
+      if(v.includes(',') || v.includes('"') || v.includes('\n')) v='"'+v+'"';
+      return v;
+    }).join(','));
+  });
+  const blob = new Blob(['\uFEFF'+lines.join('\n')], {type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`dral-${type}-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(a.href);
+  logChange(`Exported ${type} CSV`, `${rows.length} rows`);
+}
+
+function triggerCSVImport(type){
+  _csvImportType = type;
+  const input = document.getElementById('csvImportInput');
+  input.setAttribute('data-type', type);
+  input.click();
+}
+
+function parseCSV(text){
+  const lines = text.replace(/\r/g,'').split('\n').filter(l=>l.trim());
+  if(!lines.length) return {headers:[],rows:[]};
+  const headers = lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));
+  const rows = [];
+  for(let i=1;i<lines.length;i++){
+    const vals=[];let cur='';let inQ=false;
+    for(const ch of lines[i]){
+      if(ch==='"'){ inQ=!inQ; }
+      else if(ch===','&&!inQ){ vals.push(cur.replace(/""/g,'"')); cur=''; }
+      else cur+=ch;
+    }
+    vals.push(cur.replace(/""/g,'"'));
+    const obj={};
+    headers.forEach((h,j)=>{ obj[h]=(vals[j]||'').trim(); });
+    rows.push(obj);
+  }
+  return {headers,rows};
+}
+
+function importCSV(event){
+  const file = event.target.files[0]; if(!file) return;
+  const type = event.target.getAttribute('data-type') || _csvImportType;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const {headers, rows} = parseCSV(e.target.result);
+    _csvImportRows = rows.map(row=>{
+      // Convert array fields from semicolon-separated
+      if(type==='projects'){
+        if(row.tags) row.tags = row.tags ? row.tags.split(';').map(s=>s.trim()).filter(Boolean) : [];
+        if(row.partners) row.partners = row.partners ? row.partners.split(';').map(s=>s.trim()).filter(Boolean) : [];
+        if(row.memberIds) row.memberIds = row.memberIds ? row.memberIds.split(';').map(Number).filter(Boolean) : [];
+        row.id = parseInt(row.id)||null;
+        row.startYear = parseInt(row.startYear)||null;
+        row.endYear = parseInt(row.endYear)||null;
+        row.recruiting = row.recruiting==='true';
+        row.order = row.order!==''?parseInt(row.order):undefined;
+      }
+      if(type==='members'){
+        row.id = parseInt(row.id)||null;
+        row.order = row.order!==''?parseInt(row.order):undefined;
+      }
+      return row;
+    }).filter(r=>r.name||r.title);
+    _csvImportType = type;
+    document.getElementById('csvPreviewTitle').textContent = `Import ${type} (${_csvImportRows.length} rows)`;
+    document.getElementById('csvPreviewInfo').textContent = `${_csvImportRows.length} rows found. Rows with existing IDs will be updated; new rows will be added.`;
+    // Preview table
+    const displayFields = type==='members' ? ['id','name','role','dept','status','email'] : ['id','abbr','title','status','pi','tags'];
+    document.getElementById('csvPreviewTable').innerHTML=`
+      <table style="width:100%;border-collapse:collapse;font-size:.78rem">
+        <thead><tr style="background:var(--green);color:#fff">${displayFields.map(f=>`<th style="padding:7px 10px;text-align:left">${f}</th>`).join('')}</tr></thead>
+        <tbody>${_csvImportRows.slice(0,50).map((row,i)=>`
+          <tr style="background:${i%2?'var(--bg)':'var(--white)'}">
+            ${displayFields.map(f=>`<td style="padding:6px 10px;border-bottom:1px solid var(--border)">${Array.isArray(row[f])?(row[f]||[]).join(', '):(row[f]||'')}</td>`).join('')}
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+    event.target.value='';
+    openModal('csvPreviewModal');
+  };
+  reader.readAsText(file);
+}
+
+async function confirmCSVImport(){
+  if(!_csvImportRows.length) return;
+  const type = _csvImportType;
+  const btn = document.getElementById('csvImportConfirmBtn');
+  btn.disabled=true; btn.textContent='Importing…';
+  const arr = type==='members' ? D.members : D.projects;
+  let added=0, updated=0;
+  _csvImportRows.forEach(row=>{
+    if(!row.id){
+      // New item — generate ID
+      row.id = nextId(arr);
+      if(type==='members') row.memberIds=row.memberIds||[];
+      arr.push(row); added++;
+    } else {
+      const idx = arr.findIndex(x=>x.id===row.id);
+      if(idx>=0){ arr[idx]={...arr[idx],...row}; updated++; }
+      else { arr.push(row); added++; }
+    }
+  });
+  await saveToFirebase();
+  logChange(`Imported ${type} CSV`, `${added} added, ${updated} updated`);
+  btn.disabled=false; btn.textContent='Import';
+  closeModal('csvPreviewModal');
+  if(type==='members') rMembers();
+  else rProjects();
+  alert(`Import complete: ${added} added, ${updated} updated.`);
+}
+
+/* ══════════════════════════════════════════════════
+   PUBLICATION CITATIONS (APA + BibTeX)
+══════════════════════════════════════════════════ */
+function copyCitation(format, pubId){
+  const p=(D.publications||[]).find(x=>x.id===pubId); if(!p) return;
+  let text='';
+  const authorsClean=(p.authors||'').replace(/<[^>]*>/g,'');
+  const year=p.year||'n.d.';
+  const title=p.title||'';
+  const venue=p.venue||'';
+  const doi=p.doi||'';
+
+  if(format==='apa'){
+    text=`${authorsClean} (${year}). ${title}. ${venue?venue+'.':''}${doi?' https://doi.org/'+doi.replace('https://doi.org/',''):''}`;
+  } else if(format==='bibtex'){
+    const type=p.type==='conference'?'@inproceedings':p.type==='report'?'@techreport':'@article';
+    const key=(authorsClean.split(',')[0].split(' ').pop()||'author')+year+(title.split(' ')[0]||'').toLowerCase().replace(/[^a-z]/g,'');
+    const doiClean=doi.replace('https://doi.org/','');
+    text=`${type}{${key},\n  author={${authorsClean}},\n  title={${title}},\n  year={${year}},\n  journal={${venue}}${doiClean?',\n  doi={'+doiClean+'}':''}\n}`;
+  }
+
+  navigator.clipboard.writeText(text).then(()=>{
+    // Flash feedback on the button
+    const btns=document.querySelectorAll('.pub-link');
+    btns.forEach(btn=>{
+      if(btn.textContent===format.toUpperCase().slice(0,6)){
+        const orig=btn.textContent; btn.textContent='✓ Copied!';
+        setTimeout(()=>btn.textContent=orig, 1500);
+      }
+    });
+  }).catch(()=> alert(text));
+}
+
+/* ══════════════════════════════════════════════════
+   PROJECT FILTER URL SHARING
+══════════════════════════════════════════════════ */
+function shareProjectFilter(){
+  const params=new URLSearchParams();
+  params.set('page','projects');
+  if(pFilter!=='all') params.set('tag',pFilter);
+  if(pStatusF!=='all') params.set('status',pStatusF);
+  if(pPeriodF!=='all') params.set('period',pPeriodF);
+  const q=document.getElementById('ps')?.value?.trim();
+  if(q) params.set('q',q);
+  const url=window.location.origin+window.location.pathname+'?'+params.toString();
+  navigator.clipboard.writeText(url).then(()=>{
+    // Show toast
+    showToast('🔗 Filter URL copied to clipboard!');
+  }).catch(()=> alert(url));
+}
+
+function applyURLParams(){
+  const params=new URLSearchParams(window.location.search);
+  if(!params.has('page')) return;
+  const page=params.get('page');
+  setTimeout(()=>{
+    gotoPage(page);
+    if(page==='projects'){
+      const tag=params.get('tag'); const status=params.get('status');
+      const period=params.get('period'); const q=params.get('q');
+      if(tag){ pFilter=tag; document.querySelectorAll('#projectFilterBar .fb').forEach(b=>{if(b.textContent===tag)b.classList.add('on');else b.classList.remove('on');}); }
+      if(status){ pStatusF=status; ['All','Active','Completed','Paused'].forEach(s=>{ const el=document.getElementById('pStatus'+s); if(el) el.classList.toggle('on',s.toLowerCase()===status.toLowerCase()||(s==='All'&&status==='all')); }); }
+      if(period){ pPeriodF=parseInt(period)||'all'; }
+      if(q){ const el=document.getElementById('ps'); if(el) el.value=q; }
+      rProjects();
+    }
+  }, 600);
+}
+
+function showToast(msg){
+  const t=document.createElement('div');
+  t.textContent=msg;
+  t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:10px 22px;border-radius:20px;font-size:.85rem;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,.2);transition:opacity .3s';
+  document.body.appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t.remove(),400); }, 2500);
+}
+
+/* ══════════════════════════════════════════════════
+   EMAILJS NEWSLETTER
+   Setup: emailjs.com → free account → add Gmail service
+   → create template → paste IDs below
+══════════════════════════════════════════════════ */
+const EMAILJS_SERVICE_ID  = 'YOUR_SERVICE_ID';   // ← from EmailJS dashboard
+const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';  // ← your email template
+const EMAILJS_PUBLIC_KEY  = 'YOUR_PUBLIC_KEY';   // ← from Account → API Keys
+
+let _emailjsReady = false;
+function initEmailJS(){
+  try{
+    if(typeof emailjs!=='undefined'&&EMAILJS_PUBLIC_KEY!=='YOUR_PUBLIC_KEY'){
+      emailjs.init(EMAILJS_PUBLIC_KEY);
+      _emailjsReady=true;
+    }
+  }catch(e){ console.warn('EmailJS init failed:', e); }
+}
+
+// Override subscribeNewsletter to also send confirmation email via EmailJS
+const _origSubscribe = typeof subscribeNewsletter !== 'undefined' ? subscribeNewsletter : null;
+async function subscribeNewsletter(){
+  const emailInput=document.getElementById('newsletterEmail');
+  const email=emailInput?.value?.trim()||'';
+  if(!email||!email.includes('@')){ alert('Please enter a valid email address.'); return; }
+  const btn=document.querySelector('.newsletter-btn');
+  if(btn){ btn.disabled=true; btn.textContent='Subscribing…'; }
+  try{
+    // 1. Save to Firebase RTDB
+    if(IS_CONFIGURED&&rtdb){
+      const key=email.replace(/\./g,',');
+      await rtdb.ref('newsletter/'+key).set({email, subscribedAt:new Date().toISOString(), active:true});
+    }
+    // 2. Send confirmation email via EmailJS (if configured)
+    if(_emailjsReady&&EMAILJS_SERVICE_ID!=='YOUR_SERVICE_ID'){
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+        to_email: email,
+        lab_name: D?.footer?.line1||'DrAL Lab',
+        lab_url: window.location.origin,
+      });
+    }
+    emailInput.value='';
+    const success=document.getElementById('newsletterSuccess');
+    if(success) success.style.display='block';
+    if(btn){ btn.textContent='Subscribed ✓'; setTimeout(()=>{btn.disabled=false;btn.textContent='Subscribe';},3000); }
+  }catch(e){
+    alert('Subscription failed. Please try again.'); console.error(e);
+    if(btn){ btn.disabled=false; btn.textContent='Subscribe'; }
+  }
+}
+
+
+/* ══════════════════════════════════════════════════
    INIT
 ══════════════════════════════════════════════════ */
 async function init(){
@@ -5200,8 +5575,10 @@ async function init(){
         hTrack.style.transform=`translateX(${-_heroGalleryIdx*w}px)`;
       }
     });
-    startRealtimeListener(); // live updates for all visitors
+    startRealtimeListener();
     initVisitorCounter();
+    initEmailJS();
+    setTimeout(applyURLParams, 800);
     loadSubscriberCount();
   } finally {
     loadScreen.classList.add('hide');
