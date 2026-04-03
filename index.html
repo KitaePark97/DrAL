@@ -2369,8 +2369,7 @@ function rCalendar(){
     const dayEvs=evByDate[ds]||[];
     html+=`<div class="cal-cell${isToday?' today':''}">
       <div class="cal-day">${d}</div>
-      ${dayEvs.slice(0,3).map(e=>`<div class="cal-event ${EV_COLORS[e.type]||'ev-event'}" onclick="openEventDetail(${JSON.stringify(e).replace(/"/g,"'").replace(/
-/g,' ')})" title="${e.title}">${e.title}</div>`).join('')}
+      ${dayEvs.slice(0,3).map(e=>`<div class="cal-event ${EV_COLORS[e.type]||'ev-event'}" onclick="openEventDetail(${JSON.stringify(e).replace(/"/g,"'").replace(/\n/g,' ')})" title="${e.title}">${e.title}</div>`).join('')}
       ${dayEvs.length>3?`<div style="font-size:.62rem;color:var(--muted)">+${dayEvs.length-3} more</div>`:''}
     </div>`;
   }
@@ -2385,8 +2384,7 @@ function rCalendar(){
   const upEl=document.getElementById('calUpcoming'); if(!upEl) return;
   if(!upcoming.length){upEl.innerHTML='<div class="empty" style="padding:32px 0"><div class="empty-icon">📅</div><p>No upcoming events.</p></div>';return;}
   upEl.innerHTML=upcoming.map(e=>`
-    <div style="display:flex;align-items:center;gap:14px;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:13px 18px;cursor:pointer;transition:box-shadow .2s" onclick="openEventDetail(${JSON.stringify(e).replace(/"/g,"'").replace(/
-/g,' ')})" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,.08)'" onmouseout="this.style.boxShadow=''">
+    <div style="display:flex;align-items:center;gap:14px;background:var(--white);border:1px solid var(--border);border-radius:10px;padding:13px 18px;cursor:pointer;transition:box-shadow .2s" onclick="openEventDetail(${JSON.stringify(e).replace(/"/g,"'").replace(/\n/g,' ')})" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,.08)'" onmouseout="this.style.boxShadow=''">
       <div style="text-align:center;min-width:48px">
         <div style="font-size:.7rem;color:var(--muted);text-transform:uppercase">${MONTHS[parseInt(e.date.slice(5,7))-1].slice(0,3)}</div>
         <div style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:600;color:var(--green);line-height:1">${parseInt(e.date.slice(8,10))}</div>
