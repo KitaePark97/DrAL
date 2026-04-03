@@ -232,7 +232,7 @@ nav{
 /* Calendar */
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--white)}
 .cal-header{background:var(--green);color:#fff;text-align:center;padding:8px 4px;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
-.cal-cell{min-height:80px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:5px;position:relative;vertical-align:top;background:var(--white);transition:background .15s}
+.cal-cell{height:100px;overflow:hidden;border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:5px;position:relative;vertical-align:top;background:var(--white);transition:background .15s}
 .cal-cell:hover{background:var(--bg)}
 .cal-cell:nth-child(7n){border-right:none}
 .cal-cell.other-month .cal-day{opacity:.3}
@@ -892,7 +892,7 @@ const FIREBASE_CONFIG = {
       <label>Photos (1:1) <span style="font-weight:400;color:var(--muted)">(multiple photos allowed)</span></label>
       <div id="pfPhotoList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <input id="pfPhotoUrl" type="url" placeholder="https://… (enter URL)" style="flex:1;min-width:140px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none">
+        <input id="pfPhotoUrl" type="url" placeholder="https://… (recommended — paste image URL)" style="flex:1;min-width:140px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none">
         <button type="button" onclick="addProjPhotoUrl()" style="background:var(--green);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:.82rem;cursor:pointer;white-space:nowrap">+ URL</button>
         <label style="font-size:.82rem;cursor:pointer;background:var(--bg);border:1px solid var(--border);padding:8px 12px;border-radius:8px;white-space:nowrap;display:flex;align-items:center">
           📁 Upload<input type="file" accept="image/*" multiple onchange="addProjPhotoFiles(this)" style="display:none">
@@ -968,10 +968,10 @@ const FIREBASE_CONFIG = {
     </div>
     <div class="fg"><label>Content *</label><textarea id="nfContent" style="min-height:110px"></textarea></div>
     <div class="fg">
-      <label>Photos <span style="font-weight:400;color:var(--muted)">(multiple photos allowed)</span></label>
+      <label>Photos <span style="font-weight:400;color:var(--muted)">(multiple photos allowed — recommend using URLs for large images)</span></label>
       <div id="nfPhotoList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <input id="nfPhotoUrl" type="url" placeholder="https://… (enter URL)" style="flex:1;min-width:160px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none">
+        <input id="nfPhotoUrl" type="url" placeholder="https://… (recommended — paste image URL)" style="flex:1;min-width:160px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none">
         <button type="button" onclick="addNewsPhotoUrl()" style="background:var(--green);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:.82rem;cursor:pointer;white-space:nowrap">+ URL</button>
         <label style="text-transform:none;letter-spacing:0;font-size:.82rem;cursor:pointer;background:var(--bg);border:1px solid var(--border);padding:8px 12px;border-radius:8px;white-space:nowrap;display:flex;align-items:center">
           📁 Upload<input type="file" accept="image/*" multiple onchange="addNewsPhotoFiles(this)" style="display:none">
@@ -1427,12 +1427,42 @@ async function loadFromFirebase() {
 async function saveToFirebase() {
   if(!IS_CONFIGURED || !D) return;
   try {
-    await DOC_REF.set(D);
+    // Firestore max doc size is 1MB. Strip oversized base64 blobs before saving.
+    const safeD = stripLargeBase64(D);
+    await DOC_REF.set(safeD);
     showSaved();
   } catch(e) {
     console.error('Save error:', e);
-    alert('Save failed. Please check your internet connection.');
+    if(e.code === 'invalid-argument' || (e.message && e.message.includes('size'))) {
+      alert('Save failed: data is too large.\n\nPhotos stored as base64 quickly exceed Firestore\'s 1MB limit.\n\nTip: Use image URLs (from Google Drive, Imgur, etc.) instead of uploading files directly.');
+    } else {
+      alert('Save failed. Please check your internet connection.\n\nError: ' + (e.message||e));
+    }
   }
+}
+
+/**
+ * Returns a copy of the data object with base64 images replaced by a placeholder.
+ * This prevents Firestore 1MB document limit errors.
+ * Images that are already URLs (starting with http) are kept as-is.
+ */
+function stripLargeBase64(obj, _depth=0) {
+  if(_depth > 8) return obj;
+  if(typeof obj === 'string') {
+    // Replace base64 data URLs — they are huge and shouldn't be in Firestore
+    if(obj.startsWith('data:image/')) {
+      // Keep only if small (< 50KB encoded = ~37KB image)
+      if(obj.length > 65000) return '__base64_too_large__';
+    }
+    return obj;
+  }
+  if(Array.isArray(obj)) return obj.map(v => stripLargeBase64(v, _depth+1));
+  if(obj && typeof obj === 'object') {
+    const out = {};
+    for(const [k,v] of Object.entries(obj)) out[k] = stripLargeBase64(v, _depth+1);
+    return out;
+  }
+  return obj;
 }
 
 // Real-time listener: when data changes in Firebase, update all visitors
@@ -1565,9 +1595,9 @@ function addAboutPhotoUrl(){
 }
 function addAboutPhotoFiles(input){
   Array.from(input.files).forEach(file=>{
-    const r=new FileReader();
-    r.onload=e=>{ _afPhotos.push(e.target.result); renderAfPhotoList(); };
-    r.readAsDataURL(file);
+    compressImage(file,1200,800,0.85,dataUrl=>{
+      _afPhotos.push(dataUrl); renderAfPhotoList();
+    });
   });
   input.value='';
 }
@@ -1757,22 +1787,43 @@ function openMemberForm(id=null){
   openModal('mFormModal');
 }
 
-function handlePhotoUpload(input){
-  const file=input.files[0]; if(!file) return;
+/**
+ * Compress an image file to a smaller base64 JPEG.
+ * maxW/maxH: max output dimensions. quality: 0–1 JPEG quality.
+ * callback receives the compressed data URL string.
+ */
+function compressImage(file, maxW, maxH, quality, callback){
   const reader=new FileReader();
   reader.onload=e=>{
-    document.getElementById('mfPhotoUrl').value=e.target.result;
-    document.getElementById('mfPhotoPreview').style.display='block';
-    document.getElementById('mfPhotoImg').src=e.target.result;
+    const img=new Image();
+    img.onload=()=>{
+      let w=img.width, h=img.height;
+      if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+      if(h>maxH){w=Math.round(w*maxH/h);h=maxH;}
+      const canvas=document.createElement('canvas');
+      canvas.width=w; canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      callback(canvas.toDataURL('image/jpeg',quality));
+    };
+    img.src=e.target.result;
   };
   reader.readAsDataURL(file);
 }
 
+function handlePhotoUpload(input){
+  const file=input.files[0]; if(!file) return;
+  compressImage(file,400,400,0.8,dataUrl=>{
+    document.getElementById('mfPhotoUrl').value=dataUrl;
+    document.getElementById('mfPhotoPreview').style.display='block';
+    document.getElementById('mfPhotoImg').src=dataUrl;
+  });
+}
+
 function handleNewsPhotoUpload(input){
   const file=input.files[0]; if(!file) return;
-  const reader=new FileReader();
-  reader.onload=e=>{ document.getElementById('nfPhoto').value=e.target.result; };
-  reader.readAsDataURL(file);
+  compressImage(file,800,600,0.82,dataUrl=>{
+    document.getElementById('nfPhoto').value=dataUrl;
+  });
 }
 
 async function saveMember(){
@@ -2099,9 +2150,9 @@ function addProjPhotoUrl(){
 }
 function addProjPhotoFiles(input){
   Array.from(input.files).forEach(file=>{
-    const r=new FileReader();
-    r.onload=e=>{ _pfPhotos.push(e.target.result); renderPfPhotoList(); };
-    r.readAsDataURL(file);
+    compressImage(file,900,700,0.82,dataUrl=>{
+      _pfPhotos.push(dataUrl); renderPfPhotoList();
+    });
   });
   input.value='';
 }
@@ -2372,13 +2423,11 @@ async function uploadHeroGalleryPhotos(input){
   if(!D.heroBgSettings.heroPhotos) D.heroBgSettings.heroPhotos=[];
   let loaded=0;
   files.forEach(file=>{
-    const r=new FileReader();
-    r.onload=async e=>{
-      D.heroBgSettings.heroPhotos.push(e.target.result);
+    compressImage(file,1200,900,0.82,async dataUrl=>{
+      D.heroBgSettings.heroPhotos.push(dataUrl);
       loaded++;
       if(loaded===files.length){ await saveToFirebase(); initHeroGallery(); renderHeroGalleryMgr(); }
-    };
-    r.readAsDataURL(file);
+    });
   });
   input.value='';
 }
@@ -2445,9 +2494,10 @@ function addNewsPhotoFiles(input){
   const files=Array.from(input.files);
   let loaded=0;
   files.forEach(file=>{
-    const r=new FileReader();
-    r.onload=e=>{ _nfPhotos.push(e.target.result); loaded++; if(loaded===files.length) renderNfPhotoList(); };
-    r.readAsDataURL(file);
+    compressImage(file,900,700,0.82,dataUrl=>{
+      _nfPhotos.push(dataUrl); loaded++;
+      if(loaded===files.length) renderNfPhotoList();
+    });
   });
   input.value='';
 }
