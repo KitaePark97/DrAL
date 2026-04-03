@@ -398,10 +398,10 @@ footer strong{color:rgba(255,255,255,.9)}
 <!-- CONFIG NOTICE (shown if Firebase not set up) -->
 <div id="configNotice">
   <div class="config-box">
-    <h2>🔧 Firebase 설정 필요</h2>
-    <p>이 웹사이트는 Firebase Firestore를 데이터베이스로 사용합니다.<br>
-    아래 안내에 따라 Firebase 프로젝트를 만들고, 설정값을 <code>index.html</code>에 붙여넣으세요.</p>
-    <div class="config-code">// index.html 하단의 이 부분을 교체하세요:
+    <h2>🔧 Firebase Setup Required</h2>
+    <p>This website uses Firebase Firestore as its database.<br>
+    Follow the instructions below to create a Firebase project and paste the config into <code>index.html</code>.</p>
+    <div class="config-code">// Replace this section at the bottom of index.html:
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyBGR0xDhOwLgiL94yYp6vpYGejLDLTGd8I",
   authDomain: "dral-e4f2a.firebaseapp.com",
@@ -413,8 +413,8 @@ const FIREBASE_CONFIG = {
   measurementId: "G-9NPCG61CDH"
 };
 </div>
-    <p style="margin-bottom:12px">단계별 설정 방법은 동봉된 <strong>FIREBASE_SETUP.md</strong> 파일을 참고하세요.</p>
-    <a class="config-link" href="https://console.firebase.google.com" target="_blank">→ Firebase Console 열기</a>
+    <p style="margin-bottom:12px">See the included <strong>FIREBASE_SETUP.md</strong> file for step-by-step instructions.</p>
+    <a class="config-link" href="https://console.firebase.google.com" target="_blank">→ Open Firebase Console</a>
   </div>
 </div>
 
@@ -498,7 +498,7 @@ const FIREBASE_CONFIG = {
 <div id="page-members" class="page">
   <div class="sh"><h2>Lab Members</h2><div class="sh-line"></div><p>Faculty, researchers, and graduate students advancing active living research.</p></div>
   <div class="admin-bar" id="mAdminBar">
-    <span>🟢 Admin Mode — ✏️/🗑 버튼으로 편집/삭제, 또는 새 멤버 추가</span>
+    <span>🟢 Admin Mode — Use ✏️/🗑 buttons to edit/delete, or add a new member</span>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="add-btn" style="background:#0369a1" onclick="openRoleManager()">⚙ Manage Roles</button>
       <button class="add-btn" onclick="openMemberForm()">+ Add Member</button>
@@ -515,7 +515,7 @@ const FIREBASE_CONFIG = {
 <div id="page-projects" class="page">
   <div class="sh"><h2>Research Projects</h2><div class="sh-line"></div><p>Ongoing investigations across built environment, health equity, and active transportation.</p></div>
   <div class="admin-bar" id="pAdminBar">
-    <span>🟢 Admin Mode — 프로젝트 편집, 팀원 관리, 새 프로젝트 추가</span>
+    <span>🟢 Admin Mode — Edit projects, manage team members, add new projects</span>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="add-btn" style="background:#0369a1" onclick="openTagManager()">⚙ Manage Tags</button>
       <button class="add-btn" onclick="openProjForm()">+ Add Project</button>
@@ -534,7 +534,7 @@ const FIREBASE_CONFIG = {
     <div><h2>Open Positions</h2><div class="sh-line"></div></div>
   </div>
   <div class="admin-bar" id="rAdminBar">
-    <span>🟢 Admin Mode — 채용 공고 추가/편집/삭제</span>
+    <span>🟢 Admin Mode — Add, edit, or delete postings</span>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="add-btn" style="background:#0369a1" onclick="openRecTypeManager()">⚙ Manage Types</button>
       <button class="add-btn" onclick="openRecForm()">+ Add Posting</button>
@@ -554,7 +554,7 @@ const FIREBASE_CONFIG = {
     <div><h2>Lab News</h2><div class="sh-line"></div><p>Latest updates, publications, awards, and events from DrAL Lab.</p></div>
   </div>
   <div class="admin-bar" id="nAdminBar">
-    <span>🟢 Admin Mode — 뉴스 추가/편집/삭제</span>
+    <span>🟢 Admin Mode — Add, edit, or delete news</span>
     <button class="add-btn" onclick="openNewsForm()">+ Add News</button>
   </div>
   <div class="news-feed" id="newsFeed"></div>
@@ -566,7 +566,7 @@ const FIREBASE_CONFIG = {
     <div><h2>Lab Calendar</h2><div class="sh-line"></div><p>Lab meetings, recruiting deadlines, and upcoming events.</p></div>
   </div>
   <div class="admin-bar" id="calAdminBar">
-    <span>🟢 Admin Mode — 이벤트 추가/편집/삭제</span>
+    <span>🟢 Admin Mode — Add, edit, or delete events</span>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <button class="add-btn" style="background:#0369a1" onclick="openEvTypeManager()">⚙ Manage Types</button>
       <button class="add-btn" onclick="openEventForm()">+ Add Event</button>
@@ -697,10 +697,10 @@ const FIREBASE_CONFIG = {
     </div>
     <div class="fg"><label>Link URL</label><input id="pfDrive" type="url" placeholder="https://…"></div>
     <div class="fg">
-      <label>Photos (1:1) <span style="font-weight:400;color:var(--muted)">(여러 장 추가 가능)</span></label>
+      <label>Photos (1:1) <span style="font-weight:400;color:var(--muted)">(multiple photos allowed)</span></label>
       <div id="pfPhotoList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <input id="pfPhotoUrl" type="url" placeholder="https://… (URL 입력)" style="flex:1;min-width:140px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none">
+        <input id="pfPhotoUrl" type="url" placeholder="https://… (enter URL)" style="flex:1;min-width:140px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none">
         <button type="button" onclick="addProjPhotoUrl()" style="background:var(--green);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:.82rem;cursor:pointer;white-space:nowrap">+ URL</button>
         <label style="font-size:.82rem;cursor:pointer;background:var(--bg);border:1px solid var(--border);padding:8px 12px;border-radius:8px;white-space:nowrap;display:flex;align-items:center">
           📁 Upload<input type="file" accept="image/*" multiple onchange="addProjPhotoFiles(this)" style="display:none">
@@ -776,10 +776,10 @@ const FIREBASE_CONFIG = {
     </div>
     <div class="fg"><label>Content *</label><textarea id="nfContent" style="min-height:110px"></textarea></div>
     <div class="fg">
-      <label>Photos <span style="font-weight:400;color:var(--muted)">(여러 장 추가 가능)</span></label>
+      <label>Photos <span style="font-weight:400;color:var(--muted)">(multiple photos allowed)</span></label>
       <div id="nfPhotoList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <input id="nfPhotoUrl" type="url" placeholder="https://… (URL 입력)" style="flex:1;min-width:160px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none">
+        <input id="nfPhotoUrl" type="url" placeholder="https://… (enter URL)" style="flex:1;min-width:160px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none">
         <button type="button" onclick="addNewsPhotoUrl()" style="background:var(--green);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:.82rem;cursor:pointer;white-space:nowrap">+ URL</button>
         <label style="text-transform:none;letter-spacing:0;font-size:.82rem;cursor:pointer;background:var(--bg);border:1px solid var(--border);padding:8px 12px;border-radius:8px;white-space:nowrap;display:flex;align-items:center">
           📁 Upload<input type="file" accept="image/*" multiple onchange="addNewsPhotoFiles(this)" style="display:none">
@@ -817,7 +817,7 @@ const FIREBASE_CONFIG = {
   <div class="modal" style="max-width:420px">
     <button class="modal-x" onclick="closeModal('tagManagerModal')">×</button>
     <h3>Manage Project Tags</h3>
-    <p style="font-size:.83rem;color:var(--muted);margin-bottom:18px">Tags appear as filter buttons on the Projects page. Changes apply to all projects.</p>
+    <p style="font-size:.83rem;color:var(--muted);margin-bottom:18px">Tags appear as filter buttons on the Projects page.</p>
     <div id="tagList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px"></div>
     <div style="display:flex;gap:8px">
       <input id="newTagInput" type="text" placeholder="New tag name…" style="flex:1;padding:9px 13px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.88rem;outline:none" onkeydown="if(event.key==='Enter')addTag()">
@@ -832,7 +832,7 @@ const FIREBASE_CONFIG = {
   <div class="modal" style="max-width:420px">
     <button class="modal-x" onclick="closeModal('roleManagerModal')">×</button>
     <h3>Manage Member Roles</h3>
-    <p style="font-size:.83rem;color:var(--muted);margin-bottom:18px">Roles appear as filter tabs on the Members page. Default roles cannot be deleted.</p>
+    <p style="font-size:.83rem;color:var(--muted);margin-bottom:18px">Roles appear as filter tabs on the Members page.</p>
     <div id="roleList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px"></div>
     <div style="display:flex;gap:8px">
       <input id="newRoleInput" type="text" placeholder="New role name…" style="flex:1;padding:9px 13px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.88rem;outline:none" onkeydown="if(event.key==='Enter')addRole()">
@@ -861,16 +861,16 @@ const FIREBASE_CONFIG = {
 
     <!-- Hero Gallery Manager -->
     <div style="padding-top:18px;border-top:1px solid var(--border)">
-      <label style="display:block;font-size:.77rem;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:10px">🖼 Hero Gallery Photos <span style="text-transform:none;font-weight:400">(우측에 갤러리로 표시)</span></label>
+      <label style="display:block;font-size:.77rem;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:10px">🖼 Hero Gallery Photos <span style="text-transform:none;font-weight:400">(displayed as gallery on the right)</span></label>
       <div id="heroGalleryMgrList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;min-height:36px"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-        <input id="bgHeroPhotoUrl" type="url" placeholder="https://… (이미지 URL)" style="flex:1;min-width:160px;padding:8px 11px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none">
+        <input id="bgHeroPhotoUrl" type="url" placeholder="https://… (image URL)" style="flex:1;min-width:160px;padding:8px 11px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none">
         <button onclick="addHeroGalleryUrl()" style="background:var(--green);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:.8rem;cursor:pointer;white-space:nowrap">+ URL</button>
         <label style="font-size:.8rem;cursor:pointer;background:var(--bg);border:1px solid var(--border);padding:8px 12px;border-radius:8px;white-space:nowrap;display:flex;align-items:center">
           📁 Upload<input type="file" accept="image/*" multiple onchange="uploadHeroGalleryPhotos(this)" style="display:none">
         </label>
       </div>
-      <p style="font-size:.78rem;color:var(--muted)">사진 여러 장을 추가하면 갤러리로 자동 전환됩니다. × 버튼으로 삭제.</p>
+      <p style="font-size:.78rem;color:var(--muted)">Add multiple photos to enable gallery mode. Click × to remove.</p>
     </div>
 
     <!-- Text / Accent colors -->
@@ -885,7 +885,7 @@ const FIREBASE_CONFIG = {
         </div>
       </div>
       <div>
-        <label style="display:block;font-size:.77rem;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:7px">Accent Color <span style="text-transform:none;font-weight:400">(숫자·Active Living 색상)</span></label>
+        <label style="display:block;font-size:.77rem;font-weight:500;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:7px">Accent Color <span style="text-transform:none;font-weight:400">(stats numbers &amp; Active Living text)</span></label>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
           <input type="color" id="bgAccentColor" value="#a5d4c4" style="width:44px;height:36px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;padding:2px" oninput="document.getElementById('bgAccentHex').value=this.value">
           <input type="text"  id="bgAccentHex"   value="#a5d4c4" placeholder="#a5d4c4" style="width:100px;padding:8px 11px;border:1.5px solid var(--border);border-radius:8px;font-family:monospace;font-size:.88rem;outline:none" oninput="syncAccentColorFromHex()">
@@ -951,11 +951,11 @@ const FIREBASE_CONFIG = {
   <div class="modal" style="max-width:440px">
     <button class="modal-x" onclick="closeModal('evTypeManagerModal')">×</button>
     <h3>Manage Event Types</h3>
-    <p style="font-size:.83rem;color:var(--muted);margin-bottom:18px">Calendar에 표시되는 이벤트 유형을 추가/제거합니다.</p>
+    <p style="font-size:.83rem;color:var(--muted);margin-bottom:18px">Add or remove event types shown on the calendar.</p>
     <div id="evTypeList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-      <input id="newEvTypeId" type="text" placeholder="type-id (영문 소문자)" style="width:130px;padding:9px 11px;border:1.5px solid var(--border);border-radius:8px;font-family:monospace;font-size:.82rem;outline:none">
-      <input id="newEvTypeLabel" type="text" placeholder="표시 이름" style="flex:1;min-width:100px;padding:9px 11px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none">
+      <input id="newEvTypeId" type="text" placeholder="type-id (lowercase, no spaces)" style="width:130px;padding:9px 11px;border:1.5px solid var(--border);border-radius:8px;font-family:monospace;font-size:.82rem;outline:none">
+      <input id="newEvTypeLabel" type="text" placeholder="Display name" style="flex:1;min-width:100px;padding:9px 11px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none">
       <input id="newEvTypeColor" type="color" value="#2563eb" style="width:38px;height:38px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;padding:2px">
       <button class="add-btn" onclick="addEvType()">+ Add</button>
     </div>
@@ -989,8 +989,8 @@ const FIREBASE_CONFIG = {
 <script src="data.js"></script>
 <script>
 /* ══════════════════════════════════════════════════
-   ▼▼▼  여기에 Firebase 설정값을 붙여넣으세요  ▼▼▼
-   FIREBASE_SETUP.md 파일의 3단계를 참고하세요.
+   ▼▼▼  Paste your Firebase config here  ▼▼▼
+   See Step 3 in FIREBASE_SETUP.md.
 ══════════════════════════════════════════════════ */
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyBGR0xDhOwLgiL94yYp6vpYGejLDLTGd8I",
@@ -1002,10 +1002,10 @@ const FIREBASE_CONFIG = {
   appId: "1:173883013986:web:3f682659cbb7170ef28a3b",
   measurementId: "G-9NPCG61CDH"
 };
-/* ▲▲▲ 설정값 붙여넣기 끝 ▲▲▲ */
+/* ▲▲▲ End of config ▲▲▲ */
 
 /* ══════════════════════════════════════════════════
-   비밀번호 변경: btoa("새비밀번호") 로 계산 후 교체
+   Change password: compute btoa("newpassword") and replace
 ══════════════════════════════════════════════════ */
 const PW_HASH = btoa('dral2026');
 
@@ -1120,7 +1120,7 @@ async function saveToFirebase() {
     showSaved();
   } catch(e) {
     console.error('Save error:', e);
-    alert('저장 실패. 인터넷 연결을 확인해주세요.');
+    alert('Save failed. Please check your internet connection.');
   }
 }
 
@@ -1531,9 +1531,9 @@ function rProjects(){
         <p class="pc-desc">${p.desc}</p>
       </div>
       <div class="pc-body">
-        <div class="team-lbl">Team (${p.memberIds.length})${isAdmin?' — ✕로 제거':''}:</div>
+        <div class="team-lbl">Team (${p.memberIds.length})${isAdmin?' — ✕ to remove':''}:</div>
         <div class="chips">${chips}</div>
-        ${isAdmin?`<button class="add-btn" style="margin-top:10px;font-size:.75rem;padding:6px 14px" onclick="openProjForm(${p.id})">+ Team Member 추가</button>`:''}
+        ${isAdmin?`<button class="add-btn" style="margin-top:10px;font-size:.75rem;padding:6px 14px" onclick="openProjForm(${p.id})">+ Add Team Member</button>`:''}
       </div>
       <div class="pc-foot">
         <div class="sdot"><div class="dot ${dotCls}"></div><span>${statusTxt}</span></div>
@@ -1991,7 +1991,7 @@ function heroGalleryStep(dir){ heroGalleryGo(_heroGalleryIdx+dir); }
 function renderHeroGalleryMgr(){
   const photos=getHeroGalleryPhotos();
   const el=document.getElementById('heroGalleryMgrList'); if(!el) return;
-  if(!photos.length){ el.innerHTML='<span style="font-size:.8rem;color:var(--muted)">사진이 없습니다. 아래에서 추가하세요.</span>'; return; }
+  if(!photos.length){ el.innerHTML='<span style="font-size:.8rem;color:var(--muted)">No photos yet. Add one below.</span>'; return; }
   el.innerHTML=photos.map((p,i)=>`
     <div style="position:relative;width:76px;height:56px;border-radius:7px;overflow:hidden;border:1px solid var(--border)">
       <img src="${p}" style="width:100%;height:100%;object-fit:cover">
@@ -2530,7 +2530,7 @@ function rCalendar(){
       <div style="flex:1">
         <div style="font-weight:500;font-size:.9rem">${ev.title}</div>
         <div style="font-size:.75rem;color:var(--muted);margin-top:2px">${typeObj.label} · ${dateStr}${ev.time?' · '+ev.time:''}</div>
-        ${ev.recId?'<div style="font-size:.72rem;color:var(--green-l);margin-top:2px">→ Recruiting 페이지에서 확인</div>':''}
+        ${ev.recId?'<div style="font-size:.72rem;color:var(--green-l);margin-top:2px">→ View in Recruiting</div>':''}
       </div>
       ${isAdmin&&!ev.autoGen?`<div style="display:flex;gap:4px"><button class="ica ica-edit" onclick="event.stopPropagation();openEventForm('${ev.id}')">✏️</button><button class="ica ica-del" onclick="event.stopPropagation();confirmDelete('event','${ev.id}')">🗑</button></div>`:''}
     </div>`;
