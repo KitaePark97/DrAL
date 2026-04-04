@@ -1991,6 +1991,21 @@ function startRealtimeListener() {
 /* ══════════════════════════════════════════════════
    NAV
 ══════════════════════════════════════════════════ */
+function gotoPage(name){
+  // Find the nav button for this page (even if hidden) and navigate
+  const btn = document.querySelector(`.nbtn[onclick*="'${name}'"]`)
+           || document.getElementById('navBtn-'+name);
+  // If the page tab is hidden, temporarily make it navigable
+  if(btn && btn.style.display === 'none'){
+    btn.style.display = '';
+    goto(name, btn);
+    // Re-apply hidden tabs after navigation (keeps nav tidy)
+    if(D) setTimeout(applyHiddenTabs, 100);
+  } else {
+    goto(name, btn || null);
+  }
+}
+
 function goto(name, btn) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.nbtn').forEach(b=>b.classList.remove('on'));
