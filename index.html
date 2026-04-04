@@ -566,6 +566,19 @@ body.dark .fg input,.dark .fg select,.dark .fg textarea{background:var(--white);
 </style>
 </head>
 <body>
+<script>
+// Apply default page titles immediately (before Firebase loads)
+document.addEventListener('DOMContentLoaded', function(){
+  if(typeof PAGE_TITLE_DEFAULTS !== 'undefined'){
+    Object.entries(PAGE_TITLE_DEFAULTS).forEach(([page, def]) => {
+      const h = document.getElementById('ph-' + page);
+      const p = document.getElementById('ps-' + page);
+      if(h && !h.textContent) h.textContent = def.title;
+      if(p && !p.textContent){ p.textContent = def.sub; p.style.display = def.sub ? '' : 'none'; }
+    });
+  }
+});
+</script>
 
 <!-- LOADING SCREEN -->
 <div id="loadScreen">
@@ -4749,8 +4762,7 @@ const PAGE_TITLE_DEFAULTS={
 };
 
 function applyPageTitles(){
-  if(!D) return;
-  const pt=D.pageTitles||{};
+  const pt=(D&&D.pageTitles)||{};  // works even before D loads — shows defaults
   Object.entries(PAGE_TITLE_DEFAULTS).forEach(([page,def])=>{
     const h=document.getElementById('ph-'+page);
     const p=document.getElementById('ps-'+page);
