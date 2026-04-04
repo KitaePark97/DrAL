@@ -9,11 +9,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
 
 <!-- ═══ FIREBASE SDK ═══ -->
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" defer></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js" async></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js" defer></script>
 
 <style>
 /* ═══════════════════════════ TOKENS ═══════════════════════════ */
@@ -1652,7 +1652,7 @@ const FIREBASE_CONFIG = {
 </div>
 
 <!-- ═══ DATA + FIREBASE ═══ -->
-<script src="data.js"></script>
+<script src="data.js" defer></script>
 <script>
 /* ══════════════════════════════════════════════════
    ▼▼▼  Paste your Firebase config here  ▼▼▼
@@ -1880,20 +1880,20 @@ function estimateDataSize(obj) {
 // Real-time listener: when data changes in Firebase, update all visitors
 function startRealtimeListener() {
   if(!IS_CONFIGURED) return;
+  let _renderDebounce = null;
   DOC_REF.onSnapshot(
     snap => {
       if(snap.exists) {
         D = snap.data();
-        // Migrate label on live updates too
         if(D.calEventTypes) {
           D.calEventTypes.forEach(t=>{ if(t.id==='deadline'&&t.label==='Deadline') t.label='Recruiting'; });
         }
-        renderAll();
+        // Debounce: avoid re-rendering more than once per 400ms
+        clearTimeout(_renderDebounce);
+        _renderDebounce = setTimeout(renderAll, 400);
       }
     },
-    err => {
-      console.error('Realtime listener error:', err);
-    }
+    err => { console.error('Realtime listener error:', err); }
   );
 }
 
@@ -2680,7 +2680,6 @@ function openRecTypeManager(){
   if(D.heroVisible===undefined) D.heroVisible=true;
   if(!D.pageTitles) D.pageTitles={};
   if(!D.departments) D.departments=[...DEFAULT_DEPTS];
-  renderFooter();
   applyHeroVisibility();
   applyHiddenTabs();
   initTheme();
@@ -3316,7 +3315,9 @@ function renderAll(){
   applyHeroTextColor(s.textColor||'#ffffff');
   applyHeroAccentColor(s.accentColor||'#a5d4c4');
   initHeroGallery();
-  renderStats(); rMembers();
+  renderStats();
+  // Only re-render members if currently on members page (expensive DOM operation)
+  if(document.querySelector('.page.on')?.id === 'page-members') rMembers();
   const active=document.querySelector('.page.on')?.id?.replace('page-','');
   if(active==='projects'){ initTagFilters(); rProjects(); }
   if(active==='recruiting'){ initRecTypeFilters(); rRec(); }
@@ -3342,10 +3343,13 @@ function applyHeroTextColor(hex){
   const h=document.getElementById('heroSection');
   if(h) h.style.color=hex||'#ffffff';
 }
+let _lastAccentColor='';
 function applyHeroAccentColor(hex){
-  // stat numbers + em italic
-  document.querySelectorAll('.stat-n').forEach(el=>el.style.color=hex||'#a5d4c4');
-  document.querySelectorAll('.hero-text h1 em').forEach(el=>el.style.color=hex||'#a5d4c4');
+  const color=hex||'#a5d4c4';
+  if(color===_lastAccentColor) return; // skip if unchanged
+  _lastAccentColor=color;
+  document.querySelectorAll('.stat-n').forEach(el=>el.style.color=color);
+  document.querySelectorAll('.hero-text h1 em').forEach(el=>el.style.color=color);
 }
 function applyHeroPhotoDisplay(url){
   // Legacy single photo - now handled by gallery; keep stub for compat
