@@ -1265,6 +1265,15 @@ const FIREBASE_CONFIG = {
       </div>
       <div id="mfPhotoPreview" style="margin-top:6px;display:none"><img id="mfPhotoImg" style="width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid var(--border)"></div>
     </div>
+    <div class="fg">
+      <label>ORCID <span style="font-weight:400;color:var(--muted)">— e.g. 0000-0002-7849-3939</span></label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="mfOrcid" type="text" placeholder="0000-0000-0000-0000" style="font-family:monospace;max-width:220px"
+               oninput="this.value=this.value.replace(/[^0-9X-]/gi,'');validateOrcidField(this)">
+        <a id="mfOrcidLink" href="#" target="_blank" style="font-size:.76rem;color:var(--green);display:none">🔗 View Profile</a>
+      </div>
+      <div id="mfOrcidStatus" style="font-size:.72rem;margin-top:3px;color:var(--muted)"></div>
+    </div>
     <div class="fg"><label>Google Scholar URL</label><input id="mfScholar" type="url" placeholder="https://scholar.google.com/..."></div>
     <div class="fg"><label>TAMU Profile URL</label><input id="mfTamu" type="url" placeholder="https://www.arch.tamu.edu/staff/..."></div>
     <div class="fg"><label>Personal Webpage URL</label><input id="mfWebpage" type="url" placeholder="https://…"></div>
@@ -2313,6 +2322,7 @@ function openMemberView(id){
   }
   document.getElementById('mvLinks').innerHTML=[
     `<a class="mlink" href="mailto:${m.email}">✉ ${m.email}</a>`,
+    m.orcid?`<a class="mlink" href="https://orcid.org/${m.orcid}" target="_blank" style="background:#a6ce39;color:#fff">🔬 ORCID</a>`:'',
     m.scholar?`<a class="mlink sc" href="${m.scholar}" target="_blank">🎓 Google Scholar</a>`:'',
     m.tamu?`<a class="mlink" href="${m.tamu}" target="_blank">🏛 TAMU Profile</a>`:'',
     m.webpage?`<a class="mlink" href="${m.webpage}" target="_blank">🌐 Personal Webpage</a>`:'',
@@ -2339,6 +2349,8 @@ function openMemberForm(id=null){
     document.getElementById('mfAdvisor').value=m.advisor||'';
     document.getElementById('mfSubRole').value=m.subRole||'';
     document.getElementById('mfStatus').value=m.status;
+    document.getElementById('mfOrcid').value=m.orcid||'';
+    setOrcidFieldUI(m.orcid||'');
     document.getElementById('mfScholar').value=m.scholar||'';
     document.getElementById('mfTamu').value=m.tamu||'';
     document.getElementById('mfWebpage').value=m.webpage||'';
@@ -2351,7 +2363,8 @@ function openMemberForm(id=null){
       document.getElementById('mfPhotoImg').src=m.photoUrl;
     }
   } else {
-    ['mfId','mfName','mfEmail','mfAdvisor','mfSubRole','mfScholar','mfTamu','mfWebpage','mfBio','mfPhotoUrl'].forEach(f=>document.getElementById(f).value='');
+    ['mfId','mfName','mfEmail','mfAdvisor','mfSubRole','mfOrcid','mfScholar','mfTamu','mfWebpage','mfBio','mfPhotoUrl'].forEach(f=>document.getElementById(f).value='');
+    setOrcidFieldUI('');
     document.getElementById('mfRole').value='PhD Student';
     document.getElementById('mfStatus').value='Active';
     document.getElementById('mfDept').value='';
@@ -2477,6 +2490,11 @@ async function saveMember(){
   const btn=document.getElementById('mfSaveBtn');
   btn.disabled=true; btn.textContent='Saving…';
   const id=parseInt(document.getElementById('mfId').value||'0');
+  const newOrcid = document.getElementById('mfOrcid').value.trim()||null;
+  // Get previous ORCID to detect changes
+  const prevMember = id ? D.members.find(m=>m.id===id) : null;
+  const prevOrcid = prevMember?.orcid||null;
+
   const obj={
     id:id||nextId(D.members), name, email,
     role:document.getElementById('mfRole').value,
@@ -2484,6 +2502,7 @@ async function saveMember(){
     dept:document.getElementById('mfDept').value||null,
     advisor:document.getElementById('mfAdvisor').value.trim()||null,
     subRole:document.getElementById('mfSubRole').value.trim()||null,
+    orcid:newOrcid,
     scholar:document.getElementById('mfScholar').value.trim()||null,
     tamu:document.getElementById('mfTamu').value.trim()||null,
     webpage:document.getElementById('mfWebpage').value.trim()||null,
@@ -2495,8 +2514,18 @@ async function saveMember(){
   else{D.members.push(obj);}
   await saveToFirebase();
   btn.disabled=false; btn.textContent='Save Member';
-  logChange('Member saved', document.getElementById('mfId').value ? 'Updated: '+document.getElementById('mfName').value : 'Added: '+document.getElementById('mfName').value);
+  logChange('Member saved', id ? 'Updated: '+name : 'Added: '+name);
   closeModal('mFormModal'); rMembers(); renderStats();
+
+  // Auto-sync publications if ORCID is new or changed
+  if(newOrcid && newOrcid !== prevOrcid){
+    const doSync = confirm(
+      `ORCID added for ${name}.\n\nSync their publications now from ORCID + OpenAlex?\n(This may take a moment)`
+    );
+    if(doSync){
+      await syncSingleMemberPubs(name, newOrcid);
+    }
+  }
 }
 
 /* ══════════════════════════════════════════════════
@@ -4066,7 +4095,7 @@ async function syncOrcidPublications(){
   dot.className='orcid-sync-dot syncing';
   msg.textContent='Fetching from ORCID API…';
 
-  const orcidIds=Object.entries(ORCID_MAP); // [name, orcid]
+  const orcidIds=Object.entries(getEffectiveOrcidMap()); // [name, orcid] — includes member.orcid fields
   let newCount=0, errorCount=0;
   if(!D.publications) D.publications=[];
   const existingDois=new Set(D.publications.map(p=>p.doi).filter(Boolean));
@@ -4171,7 +4200,7 @@ function highlightLabAuthors(authorStr, labOrcid){
   if(!authorStr) return '';
   let result = authorStr;
   // Bold-highlight any name that matches a lab member
-  Object.keys(ORCID_MAP).forEach(name => {
+  Object.keys(getEffectiveOrcidMap()).forEach(name => {
     // Match last name or full name
     const lastName = name.split(' ').pop();
     const re = new RegExp('('+name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')', 'gi');
@@ -4208,7 +4237,7 @@ function rPublications(){
   }
 
   // Build author filter buttons (lab members only)
-  const labNames=Object.keys(ORCID_MAP);
+  const labNames=Object.keys(getEffectiveOrcidMap());
   const af=document.getElementById('pubAuthorFilters');
   if(af){
     // Only show authors who have publications
@@ -5040,7 +5069,7 @@ async function syncOpenAlex(){
   const existingTitleKeys=new Set(D.publications.map(p=>_titleKey(p.title,p.year)));
 
   let newCount=0, errorCount=0;
-  const orcidIds=Object.entries(ORCID_MAP);
+  const orcidIds=Object.entries(getEffectiveOrcidMap());
 
   for(let i=0; i<orcidIds.length; i++){
     const [name, orcid]=orcidIds[i];
@@ -5131,6 +5160,129 @@ async function syncOpenAlex(){
   dot.className='orcid-sync-dot done';
   msg.textContent=`OpenAlex sync complete — ${newCount} new publications added${errorCount?' ('+errorCount+' errors)':''}`;
   lastSync.textContent='OpenAlex synced: '+new Date().toLocaleString();
+  rPublications();
+}
+
+/* ══════════════════════════════════════════════════
+   MEMBER ORCID FIELD HELPERS
+══════════════════════════════════════════════════ */
+function validateOrcidField(input){
+  const val = input.value.trim();
+  setOrcidFieldUI(val);
+}
+function setOrcidFieldUI(val){
+  const status = document.getElementById('mfOrcidStatus');
+  const link   = document.getElementById('mfOrcidLink');
+  if(!status) return;
+  if(!val){ status.textContent=''; if(link) link.style.display='none'; return; }
+  // ORCID format: 0000-0000-0000-0000 or 0000-0000-0000-000X
+  const clean = val.replace(/\s/g,'');
+  const valid = /^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/i.test(clean);
+  if(valid){
+    status.textContent = '✓ Valid ORCID format';
+    status.style.color = 'var(--green)';
+    if(link){ link.href='https://orcid.org/'+clean; link.style.display='inline'; }
+  } else {
+    status.textContent = 'Format: 0000-0000-0000-0000';
+    status.style.color = '#dc2626';
+    if(link) link.style.display='none';
+  }
+}
+
+/* Build effective ORCID map: ORCID_MAP (static) merged with member.orcid fields */
+function getEffectiveOrcidMap(){
+  const map = {...ORCID_MAP};
+  // Add/override with ORCID values stored directly on member records
+  if(D && D.members){
+    D.members.forEach(m => {
+      if(m.name && m.orcid) map[m.name] = m.orcid;
+    });
+  }
+  return map;
+}
+
+/* Sync publications for a single member (called after adding ORCID) */
+async function syncSingleMemberPubs(name, orcid){
+  const dot = document.getElementById('orcidSyncDot');
+  const msg = document.getElementById('orcidSyncMsg');
+  const statusDiv = document.getElementById('orcidSyncStatus');
+  if(statusDiv) statusDiv.style.display='flex';
+  if(dot) dot.className='orcid-sync-dot syncing';
+  if(msg) msg.textContent=`Syncing ${name}…`;
+
+  if(!D.publications) D.publications=[];
+  const existingDois   = new Set(D.publications.map(p=>p.doi).filter(Boolean));
+  const existingTitleKeys = new Set(D.publications.map(p=>_titleKey(p.title,p.year)));
+  const orcidToName = Object.fromEntries(Object.entries(getEffectiveOrcidMap()).map(([n,o])=>[o,n]));
+
+  let newCount = 0;
+  // ORCID
+  try{
+    const resp = await fetch(`https://pub.orcid.org/v3.0/${orcid}/works`,{headers:{'Accept':'application/json'}});
+    if(resp.ok){
+      const data = await resp.json();
+      for(const group of (data.group||[])){
+        const summary = group['work-summary']?.[0]; if(!summary) continue;
+        const title = summary.title?.title?.value||''; if(!title) continue;
+        const year  = parseInt(summary['publication-date']?.year?.value)||null;
+        const extIds = summary['external-ids']?.['external-id']||[];
+        const doiObj = extIds.find(e=>e['external-id-type']==='doi');
+        const doi = doiObj?'https://doi.org/'+doiObj['external-id-value']:null;
+        if(doi&&existingDois.has(doi)) continue;
+        const tKey=_titleKey(title,year); if(!doi&&existingTitleKeys.has(tKey)) continue;
+        let mappedType='journal';
+        const type=summary.type||'';
+        if(type.includes('conference')||type.includes('proceedings')) mappedType='conference';
+        else if(type.includes('report')||type.includes('dissertation')) mappedType='report';
+        let authorList=name;
+        try{
+          const putCode=summary['put-code'];
+          const fullResp=await fetch(`https://pub.orcid.org/v3.0/${orcid}/work/${putCode}`,{headers:{'Accept':'application/json'}});
+          if(fullResp.ok){
+            const full=await fullResp.json();
+            const contribs=full.contributors?.contributor||[];
+            if(contribs.length) authorList=contribs.map(c=>c['credit-name']?.value||(c['contributor-orcid']?.path?orcidToName[c['contributor-orcid'].path]:null)).filter(Boolean).join(', ')||name;
+          }
+        }catch(e2){}
+        D.publications.push({id:'orcid-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),title,authors:authorList,labOrcid:orcid,year,type:mappedType,venue:summary['journal-title']?.value||null,doi,pdf:null,orcidSource:orcid,source:'orcid'});
+        if(doi) existingDois.add(doi); existingTitleKeys.add(tKey); newCount++;
+      }
+    }
+  }catch(e){ console.warn('ORCID error',e); }
+
+  // OpenAlex
+  try{
+    const resp = await fetch(`https://api.openalex.org/works?filter=author.orcid:${orcid}&per-page=100&select=id,title,publication_year,type,primary_location,authorships,doi&mailto=drallab@tamu.edu`);
+    if(resp.ok){
+      const data = await resp.json();
+      for(const work of (data.results||[])){
+        const title=work.title||''; if(!title) continue;
+        const year=work.publication_year||null;
+        const doi=work.doi||null;
+        if(doi&&existingDois.has(doi)) continue;
+        const tKey=_titleKey(title,year); if(!doi&&existingTitleKeys.has(tKey)) continue;
+        let mappedType='journal';
+        const oaType=work.type||'';
+        if(oaType.includes('conference')||oaType.includes('proceedings')) mappedType='conference';
+        else if(oaType.includes('report')||oaType.includes('dissertation')||oaType==='dataset') mappedType='report';
+        const authorList=(work.authorships||[]).map(a=>a.author?.display_name||'').filter(Boolean).join(', ')||name;
+        D.publications.push({id:'oa-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),title,authors:authorList,labOrcid:orcid,year,type:mappedType,venue:work.primary_location?.source?.display_name||null,doi,pdf:work.primary_location?.pdf_url||null,source:'openalex',oaId:work.id||null});
+        if(doi) existingDois.add(doi); existingTitleKeys.add(tKey); newCount++;
+      }
+    }
+  }catch(e){ console.warn('OpenAlex error',e); }
+
+  // Final dedup pass
+  const seenDois=new Set(); const seenKeys=new Set();
+  D.publications=D.publications.filter(p=>{
+    if(p.doi){if(seenDois.has(p.doi))return false;seenDois.add(p.doi);return true;}
+    else{const k=_titleKey(p.title,p.year);if(seenKeys.has(k))return false;seenKeys.add(k);return true;}
+  });
+
+  await saveToFirebase();
+  if(dot) dot.className='orcid-sync-dot done';
+  if(msg) msg.textContent=`${name}: ${newCount} new publications added`;
+  logChange('Auto-synced pubs', `${name} (${orcid}) → ${newCount} new`);
   rPublications();
 }
 
