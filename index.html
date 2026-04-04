@@ -563,6 +563,12 @@ body.dark .fg input,.dark .fg select,.dark .fg textarea{background:var(--white);
 .alumni-role{font-size:.77rem;color:var(--muted)}
 .alumni-now{font-size:.77rem;color:var(--green-l);margin-top:2px;font-weight:500}
 .alumni-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:20px}
+
+/* About page responsive layout */
+@media(max-width:640px){
+  #page-about .about-hero>div:first-child{grid-template-columns:1fr!important}
+  #aboutPillarsGrid{grid-template-columns:1fr!important}
+}
 </style>
 </head>
 <body>
@@ -695,13 +701,37 @@ const FIREBASE_CONFIG = {
     <div style="font-size:2rem;margin-bottom:8px">🖼</div>
     <p>No photos yet. Click "Edit About" to add gallery photos.</p>
   </div>
-  <div class="about-hero">
+  <!-- Mission Headline -->
+  <div id="aboutMissionHeadline" style="margin-bottom:28px">
     <div class="about-tag" id="aboutInstitution"></div>
     <div class="about-tagline" id="aboutTagline"></div>
-    <div class="about-desc"    id="aboutDesc2"></div>
-    <div class="about-mission" id="aboutMission"></div>
+    <!-- Keyword pills -->
+    <div id="aboutKeywordPills" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;margin-bottom:20px"></div>
   </div>
-  <div class="about-cards" id="aboutCards"></div>
+
+  <!-- Main content: description + stats side-by-side -->
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:32px;margin-bottom:32px;align-items:start">
+    <div>
+      <div style="width:40px;height:3px;background:var(--gold);border-radius:2px;margin-bottom:14px"></div>
+      <div class="about-desc" id="aboutDesc2"></div>
+    </div>
+    <div class="about-cards" id="aboutCards"></div>
+  </div>
+
+  <!-- PI Quote block -->
+  <div id="aboutQuoteBlock" style="display:none;padding:18px 22px;border-left:4px solid var(--gold);background:var(--gold-pale);border-radius:0 10px 10px 0;margin-bottom:32px">
+    <div id="aboutQuoteText" style="font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:var(--text);line-height:1.7;font-style:italic;margin-bottom:6px"></div>
+    <div id="aboutQuoteAttr" style="font-size:.78rem;color:var(--muted);font-weight:500"></div>
+  </div>
+
+  <!-- Research Pillars -->
+  <div id="aboutPillarsSection" style="display:none;margin-bottom:32px">
+    <div style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:14px">Research Pillars</div>
+    <div id="aboutPillarsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px"></div>
+  </div>
+
+  <!-- Mission / About text (full width) -->
+  <div class="about-mission" id="aboutMission" style="margin-bottom:24px"></div>
   <!-- Newsletter signup -->
   <div class="newsletter-box" id="newsletterBox">
     <div style="flex:1">
@@ -1277,11 +1307,15 @@ const FIREBASE_CONFIG = {
     <div class="fg"><label>Google Scholar URL</label><input id="mfScholar" type="url" placeholder="https://scholar.google.com/..."></div>
     <div class="fg"><label>TAMU Profile URL</label><input id="mfTamu" type="url" placeholder="https://www.arch.tamu.edu/staff/..."></div>
     <div class="fg"><label>Personal Webpage URL</label><input id="mfWebpage" type="url" placeholder="https://…"></div>
+    <div class="fg"><label>Research Interests <span style="font-weight:400;color:var(--muted)">comma-separated tags, e.g. Active Living, Health Equity, Urban Design</span></label>
+      <input id="mfInterests" type="text" placeholder="Built Environment, Physical Activity, Health Equity"></div>
+    <div class="fg"><label>Education <span style="font-weight:400;color:var(--muted)">one per line: Degree, Institution, Year</span></label>
+      <textarea id="mfEducation" style="min-height:80px" placeholder="Ph.D. in City & Regional Planning, University of North Carolina, 2003&#10;M.S. in Urban Design, Seoul National University, 1997"></textarea></div>
+    <div class="fg"><label>Bio</label><textarea id="mfBio" placeholder="Brief introduction..."></textarea></div>
     <div class="fg" id="mfAlumniFields" style="display:none">
       <label>Current Affiliation <span style="font-weight:400;color:var(--muted)">(for alumni — current position & institution)</span></label>
       <input id="mfCurrentAffiliation" type="text" placeholder="Assistant Professor, University of Texas Austin">
     </div>
-    <div class="fg"><label>Bio</label><textarea id="mfBio" placeholder="Brief introduction..."></textarea></div>
     <div class="factions">
       <button class="btn-cancel" onclick="closeModal('mFormModal')">Cancel</button>
       <button class="btn-save" id="mfSaveBtn" onclick="saveMember()">Save Member</button>
@@ -1432,17 +1466,43 @@ const FIREBASE_CONFIG = {
 
 <!-- About edit -->
 <div class="overlay" id="aboutModal" onclick="if(event.target===this)closeModal('aboutModal')">
-  <div class="modal">
+  <div class="modal wide" style="max-width:680px">
     <button class="modal-x" onclick="closeModal('aboutModal')">×</button>
     <h3>Edit About Page</h3>
-    <div class="fg"><label>Institution / Subtitle</label><input id="afInstitution" type="text" placeholder="Texas A&M University · College of Architecture"></div>
-    <div class="fg"><label>Tagline</label><input id="afTagline" type="text"></div>
-    <div class="fg"><label>Description</label><textarea id="afDesc" style="min-height:110px"></textarea></div>
-    <div class="fg"><label>Mission Statement</label><textarea id="afMission" style="min-height:80px"></textarea></div>
-    <div class="fg"><label>Contact Email</label><input id="afContact" type="email"></div>
-    <div class="fg"><label>LinkedIn URL</label><input id="afLinkedin" type="url" placeholder="https://www.linkedin.com/in/…"></div>
+
+    <div style="font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Identity</div>
+    <div class="fg"><label>Institution / Subtitle <span style="font-weight:400;color:var(--muted)">shown above the tagline</span></label>
+      <input id="afInstitution" type="text" placeholder="Texas A&M University · College of Architecture"></div>
+    <div class="fg"><label>Tagline <span style="font-weight:400;color:var(--muted)">large headline, e.g. "We design places where people move and thrive."</span></label>
+      <input id="afTagline" type="text"></div>
+    <div class="fg"><label>Keyword Pills <span style="font-weight:400;color:var(--muted)">comma-separated, shown below tagline</span></label>
+      <input id="afKeywords" type="text" placeholder="Built Environment, Physical Activity, Health Equity, Community Design"></div>
+
+    <div style="font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Description</div>
+    <div class="fg"><label>About Description</label><textarea id="afDesc" style="min-height:100px"></textarea></div>
+    <div class="fg"><label>Mission Statement <span style="font-weight:400;color:var(--muted)">shown as a full-width block below description</span></label>
+      <textarea id="afMission" style="min-height:70px"></textarea></div>
+
+    <div style="font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">PI Quote Block</div>
+    <div class="fr">
+      <div class="fg"><label>Quote Text <span style="font-weight:400;color:var(--muted)">(leave blank to hide)</span></label>
+        <textarea id="afQuote" style="min-height:70px" placeholder="Our goal is to make active living accessible to everyone…"></textarea></div>
+      <div class="fg"><label>Attribution</label>
+        <input id="afQuoteAttr" type="text" placeholder="— Dr. Chanam Lee, PI"></div>
+    </div>
+
+    <div style="font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Research Pillars <span style="font-weight:400;text-transform:none;font-size:.75rem">(up to 4, leave blank to hide)</span></div>
+    <div id="afPillarList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:6px"></div>
+    <button type="button" onclick="addAfPillar()" style="background:none;border:1px dashed var(--border);padding:7px 14px;border-radius:8px;font-size:.82rem;cursor:pointer;color:var(--muted);margin-bottom:10px">+ Add Pillar</button>
+
+    <div style="font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Contact & Links</div>
+    <div class="fr">
+      <div class="fg"><label>Contact Email</label><input id="afContact" type="email"></div>
+      <div class="fg"><label>LinkedIn URL</label><input id="afLinkedin" type="url" placeholder="https://www.linkedin.com/in/…"></div>
+    </div>
+
+    <div style="font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Gallery Photos</div>
     <div class="fg">
-      <label>About Gallery Photos <span style="font-weight:400;color:var(--muted)">(displayed at top of About page)</span></label>
       <div id="afPhotoList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px"></div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <input id="afPhotoUrl" type="url" placeholder="https://… or Google Drive share link" style="flex:1;min-width:140px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;outline:none">
@@ -1452,6 +1512,7 @@ const FIREBASE_CONFIG = {
         </label>
       </div>
     </div>
+
     <div class="factions">
       <button class="btn-cancel" onclick="closeModal('aboutModal')">Cancel</button>
       <button class="btn-save" onclick="saveAbout()">Save</button>
@@ -2108,14 +2169,50 @@ function renderStats(){
 function renderAbout(){
   if(!D) return;
   const a=D.about;
-  document.getElementById('aboutTagline').textContent=a.tagline;
+  document.getElementById('aboutTagline').textContent=a.tagline||'';
   const instEl=document.getElementById('aboutInstitution');
   if(instEl) instEl.textContent=a.institution||'Texas A&M University · College of Architecture';
-  document.getElementById('aboutDesc2').textContent=a.description;
-  document.getElementById('aboutMission').textContent=a.mission;
-  document.getElementById('contactLink').href='mailto:'+a.contact;
+  document.getElementById('aboutDesc2').textContent=a.description||'';
+  document.getElementById('aboutMission').textContent=a.mission||'';
+  document.getElementById('contactLink').href='mailto:'+(a.contact||'');
   const li=document.getElementById('linkedinLink');
   if(a.linkedin){li.href=a.linkedin;li.style.display='inline-block';}else{li.style.display='none';}
+
+  // Keyword pills
+  const pillsEl=document.getElementById('aboutKeywordPills');
+  if(pillsEl){
+    const kws=(a.keywords||[]);
+    const PILL_BG=['#dcfce7;color:#166534','#dbeafe;color:#1e40af','#fef3c7;color:#92400e','#ede9fe;color:#5b21b6'];
+    pillsEl.innerHTML=kws.map((k,i)=>{const[bg,cl]=PILL_BG[i%4].split(';color:');return`<span style="padding:4px 13px;border-radius:20px;font-size:.78rem;font-weight:500;background:${bg};color:#${cl};display:inline-block">${k}</span>`;}).join('');
+    pillsEl.style.display=kws.length?'flex':'none';
+  }
+
+  // PI Quote block
+  const qBlock=document.getElementById('aboutQuoteBlock');
+  const qText=document.getElementById('aboutQuoteText');
+  const qAttr=document.getElementById('aboutQuoteAttr');
+  if(qBlock){
+    if(a.quote){qText.textContent=a.quote;qAttr.textContent=a.quoteAttr||'';qBlock.style.display='block';}
+    else qBlock.style.display='none';
+  }
+
+  // Research Pillars
+  const pillarsSection=document.getElementById('aboutPillarsSection');
+  const pillarsGrid=document.getElementById('aboutPillarsGrid');
+  if(pillarsSection&&pillarsGrid){
+    const pillars=a.pillars||[];
+    if(pillars.length){
+      pillarsGrid.innerHTML=pillars.map(p=>`
+        <div style="padding:16px;border:1px solid var(--border);border-radius:10px;background:var(--white)">
+          <div style="font-size:1.25rem;margin-bottom:8px">${p.icon||'🔬'}</div>
+          <div style="font-weight:600;font-size:.9rem;margin-bottom:5px">${p.title||''}</div>
+          <div style="font-size:.8rem;color:var(--muted);line-height:1.55">${p.text||''}</div>
+        </div>`).join('');
+      pillarsSection.style.display='block';
+    } else {
+      pillarsSection.style.display='none';
+    }
+  }
   const pubCount=(D.publications||[]).length;
   document.getElementById('aboutCards').innerHTML=[
     {icon:'🏫',num:'Texas A&M',lbl:'University',         action:`window.open('https://www.tamu.edu','_blank')`},
@@ -2173,8 +2270,12 @@ async function saveAbout(){
   D.about={
     institution: document.getElementById('afInstitution').value.trim()||'Texas A&M University · College of Architecture',
     tagline:     document.getElementById('afTagline').value.trim(),
+    keywords:    document.getElementById('afKeywords').value.trim().split(',').map(s=>s.trim()).filter(Boolean),
     description: document.getElementById('afDesc').value.trim(),
     mission:     document.getElementById('afMission').value.trim(),
+    quote:       document.getElementById('afQuote').value.trim()||null,
+    quoteAttr:   document.getElementById('afQuoteAttr').value.trim()||null,
+    pillars:     _afPillars.filter(p=>p.title||p.text),
     contact:     document.getElementById('afContact').value.trim(),
     linkedin:    document.getElementById('afLinkedin').value.trim()||null,
   };
@@ -2311,15 +2412,29 @@ function openMemberView(id){
   if(m.status==='Former') metaParts.push('Former Member');
   document.getElementById('mvMeta').textContent=metaParts.join(' · ');
   const bio=document.getElementById('mvBio');
-  if(m.bio || m.currentAffiliation) {
-    let bioHtml = '';
-    if(m.currentAffiliation) bioHtml += `<div style="font-size:.82rem;color:var(--green-l);font-weight:500;margin-bottom:6px">📍 Currently: ${m.currentAffiliation}</div>`;
-    if(m.bio) bioHtml += `<div>${m.bio}</div>`;
-    bio.innerHTML = bioHtml;
-    bio.style.display = 'block';
-  } else {
-    bio.style.display = 'none';
+  let bioHtml='';
+  if(m.currentAffiliation) bioHtml+=`<div style="font-size:.82rem;color:var(--green-l);font-weight:500;margin-bottom:8px">📍 Currently: ${m.currentAffiliation}</div>`;
+
+  // Research Interests
+  if(m.interests&&m.interests.length){
+    const PILL_COLORS=['#dcfce7;color:#166534','#dbeafe;color:#1e40af','#fef3c7;color:#92400e','#ede9fe;color:#5b21b6','#fee2e2;color:#991b1b','#e0e7ff;color:#3730a3'];
+    bioHtml+=`<div style="margin-bottom:12px"><div style="font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:6px">Research Interests</div><div>${m.interests.map((t,i)=>{const[bg,cl]=PILL_COLORS[i%PILL_COLORS.length].split(';color:');return`<span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:.78rem;font-weight:500;background:${bg};color:#${cl};margin:3px 3px 3px 0">${t}</span>`}).join('')}</div></div>`;
   }
+
+  if(m.bio) bioHtml+=`<div style="font-size:.85rem;line-height:1.7;color:var(--muted);margin-bottom:12px">${m.bio}</div>`;
+
+  // Education
+  if(m.education&&m.education.length){
+    const eduDots=['#2d4a3e','#378add','#639922'];
+    bioHtml+=`<div><div style="font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px">Education</div>${m.education.map((line,i)=>{
+      const parts=line.split(',').map(s=>s.trim());
+      const degree=parts[0]||line, rest=parts.slice(1).join(' · ');
+      return`<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:7px"><div style="width:8px;height:8px;border-radius:50%;background:${eduDots[i%3]};flex-shrink:0;margin-top:4px"></div><div><div style="font-size:.83rem;font-weight:500">${degree}</div>${rest?`<div style="font-size:.75rem;color:var(--muted);margin-top:1px">${rest}</div>`:''}</div></div>`;
+    }).join('')}</div>`;
+  }
+
+  if(bioHtml){ bio.innerHTML=bioHtml; bio.style.display='block'; }
+  else { bio.style.display='none'; }
   document.getElementById('mvLinks').innerHTML=[
     `<a class="mlink" href="mailto:${m.email}">✉ ${m.email}</a>`,
     m.orcid?`<a class="mlink" href="https://orcid.org/${m.orcid}" target="_blank" style="background:#a6ce39;color:#fff">🔬 ORCID</a>`:'',
@@ -2355,6 +2470,8 @@ function openMemberForm(id=null){
     document.getElementById('mfTamu').value=m.tamu||'';
     document.getElementById('mfWebpage').value=m.webpage||'';
     document.getElementById('mfBio').value=m.bio||'';
+    document.getElementById('mfInterests').value=(m.interests||[]).join(', ');
+    document.getElementById('mfEducation').value=(m.education||[]).join('\n');
     document.getElementById('mfCurrentAffiliation').value=m.currentAffiliation||'';
     document.getElementById('mfAlumniFields').style.display=m.status==='Former'?'block':'none';
     document.getElementById('mfPhotoUrl').value=m.photoUrl||'';
@@ -2363,8 +2480,9 @@ function openMemberForm(id=null){
       document.getElementById('mfPhotoImg').src=m.photoUrl;
     }
   } else {
-    ['mfId','mfName','mfEmail','mfAdvisor','mfSubRole','mfOrcid','mfScholar','mfTamu','mfWebpage','mfBio','mfPhotoUrl'].forEach(f=>document.getElementById(f).value='');
+    ['mfId','mfName','mfEmail','mfAdvisor','mfSubRole','mfOrcid','mfScholar','mfTamu','mfWebpage','mfBio','mfInterests','mfEducation','mfPhotoUrl'].forEach(f=>document.getElementById(f).value='');
     setOrcidFieldUI('');
+    document.getElementById('mfAlumniFields').style.display='none';
     document.getElementById('mfRole').value='PhD Student';
     document.getElementById('mfStatus').value='Active';
     document.getElementById('mfDept').value='';
@@ -2507,6 +2625,8 @@ async function saveMember(){
     tamu:document.getElementById('mfTamu').value.trim()||null,
     webpage:document.getElementById('mfWebpage').value.trim()||null,
     bio:document.getElementById('mfBio').value.trim()||null,
+    interests:document.getElementById('mfInterests').value.trim().split(',').map(s=>s.trim()).filter(Boolean),
+    education:document.getElementById('mfEducation').value.trim().split('\n').map(s=>s.trim()).filter(Boolean),
     currentAffiliation:document.getElementById('mfCurrentAffiliation').value.trim()||null,
     photoUrl:processImageUrl(document.getElementById('mfPhotoUrl').value.trim())||null,
   };
