@@ -305,12 +305,12 @@ nav{
 .about-tagline{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:600;color:var(--green);line-height:1.3;margin-bottom:18px}
 .about-desc{font-size:.92rem;line-height:1.8;color:var(--text);margin-bottom:16px;white-space:pre-line}
 .about-mission{font-size:.88rem;line-height:1.75;color:var(--muted);border-left:3px solid var(--gold);padding-left:18px;white-space:pre-line}
-.about-cards{display:flex;flex-direction:column;gap:12px}
-.acard{background:var(--white);border-radius:12px;border:1px solid var(--border);padding:16px 20px;text-align:left;display:flex;align-items:center;gap:14px;cursor:pointer;transition:box-shadow .2s}
-.acard:hover{box-shadow:0 2px 12px rgba(0,0,0,.07)}
-.acard-icon{font-size:1.5rem;flex-shrink:0;width:42px;height:42px;display:flex;align-items:center;justify-content:center;background:var(--green-pale);border-radius:10px}
-.acard-num{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:600;color:var(--green);line-height:1}
-.acard-lbl{font-size:.74rem;color:var(--muted);margin-top:2px}
+.about-cards{display:flex;flex-direction:column;gap:8px}
+.acard{background:var(--white);border-radius:10px;border:1px solid var(--border);padding:10px 14px;text-align:left;display:flex;align-items:center;gap:11px;cursor:pointer;transition:box-shadow .2s}
+.acard:hover{box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.acard-icon{font-size:1.1rem;flex-shrink:0;width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:var(--green-pale);border-radius:8px}
+.acard-num{font-family:'Cormorant Garamond',serif;font-size:1.35rem;font-weight:600;color:var(--green);line-height:1}
+.acard-lbl{font-size:.7rem;color:var(--muted);margin-top:1px}
 .about-contact{background:var(--green);color:#fff;border-radius:14px;padding:36px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
 .about-contact h3{font-family:'Cormorant Garamond',serif;font-size:1.5rem}
 .about-contact p{opacity:.8;font-size:.88rem;margin-top:6px}
@@ -721,10 +721,19 @@ const FIREBASE_CONFIG = {
     <div class="about-cards" id="aboutCards"></div>
   </div>
 
-  <!-- PI Quote block -->
-  <div id="aboutQuoteBlock" style="display:none;padding:18px 22px;border-left:4px solid var(--gold);background:var(--gold-pale);border-radius:0 10px 10px 0;margin-bottom:32px">
-    <div id="aboutQuoteText" style="font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:var(--text);line-height:1.7;font-style:italic;margin-bottom:6px"></div>
-    <div id="aboutQuoteAttr" style="font-size:.78rem;color:var(--muted);font-weight:500"></div>
+  <!-- Multi-quote carousel -->
+  <div id="aboutQuoteBlock" style="display:none;margin-bottom:32px">
+    <div style="position:relative;padding:20px 24px;border-left:4px solid var(--gold);background:var(--gold-pale);border-radius:0 10px 10px 0">
+      <div id="aboutQuoteText" style="font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--text);line-height:1.75;font-style:italic;margin-bottom:8px"></div>
+      <div id="aboutQuoteAttr" style="font-size:.76rem;color:var(--muted);font-weight:600"></div>
+      <div id="aboutQuoteSource" style="font-size:.7rem;color:var(--muted);margin-top:2px"></div>
+    </div>
+    <!-- Carousel nav -->
+    <div id="aboutQuoteNav" style="display:flex;align-items:center;gap:8px;margin-top:10px">
+      <button onclick="quoteStep(-1)" style="background:none;border:1px solid var(--border);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:.9rem;color:var(--muted);display:flex;align-items:center;justify-content:center">‹</button>
+      <div id="aboutQuoteDots" style="display:flex;gap:5px"></div>
+      <button onclick="quoteStep(1)" style="background:none;border:1px solid var(--border);width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:.9rem;color:var(--muted);display:flex;align-items:center;justify-content:center">›</button>
+    </div>
   </div>
 
   <!-- Research Pillars -->
@@ -1492,13 +1501,9 @@ const FIREBASE_CONFIG = {
     <div class="fg"><label>Mission Statement <span style="font-weight:400;color:var(--muted)">shown as a full-width block below description</span></label>
       <textarea id="afMission" style="min-height:70px"></textarea></div>
 
-    <div style="font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">PI Quote Block</div>
-    <div class="fr">
-      <div class="fg"><label>Quote Text <span style="font-weight:400;color:var(--muted)">(leave blank to hide)</span></label>
-        <textarea id="afQuote" style="min-height:70px" placeholder="Our goal is to make active living accessible to everyone…"></textarea></div>
-      <div class="fg"><label>Attribution</label>
-        <input id="afQuoteAttr" type="text" placeholder="— Dr. Chanam Lee, PI"></div>
-    </div>
+    <div style="font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Quotes <span style="font-weight:400;text-transform:none;font-size:.75rem">(multiple, displayed as carousel)</span></div>
+    <div id="afQuoteList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:6px"></div>
+    <button type="button" onclick="addAfQuote()" style="background:none;border:1px dashed var(--border);padding:7px 14px;border-radius:8px;font-size:.82rem;cursor:pointer;color:var(--muted);margin-bottom:10px">+ Add Quote</button>
 
     <div style="font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Research Pillars <span style="font-weight:400;text-transform:none;font-size:.75rem">(up to 4, leave blank to hide)</span></div>
     <div id="afPillarList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:6px"></div>
@@ -2196,12 +2201,11 @@ function renderAbout(){
     pillsEl.style.display=kws.length?'flex':'none';
   }
 
-  // PI Quote block
+  // Multi-quote carousel
   const qBlock=document.getElementById('aboutQuoteBlock');
-  const qText=document.getElementById('aboutQuoteText');
-  const qAttr=document.getElementById('aboutQuoteAttr');
   if(qBlock){
-    if(a.quote){qText.textContent=a.quote;qAttr.textContent=a.quoteAttr||'';qBlock.style.display='block';}
+    const quotes=a.quotes||[];
+    if(quotes.length){ qBlock.style.display='block'; _quoteIdx=0; renderQuoteCarousel(quotes); }
     else qBlock.style.display='none';
   }
 
@@ -2263,6 +2267,59 @@ async function addAboutPhotoFiles(input){
     input.value='';
   }
 }
+/* ── Multi-quote manager ── */
+let _afQuotes=[];
+function renderAfQuoteList(){
+  const el=document.getElementById('afQuoteList'); if(!el) return;
+  el.innerHTML=_afQuotes.map((q,i)=>`
+    <div style="border:1px solid var(--border);border-radius:10px;padding:12px;background:var(--bg)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)">Quote ${i+1}</span>
+        <button onclick="_afQuotes.splice(${i},1);renderAfQuoteList()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:0 4px">×</button>
+      </div>
+      <div class="fg" style="margin-bottom:8px"><label style="font-size:.75rem">Quote text</label>
+        <textarea rows="2" style="min-height:60px;padding:7px 10px;border:1px solid var(--border);border-radius:7px;font-family:inherit;font-size:.84rem;outline:none;width:100%"
+          oninput="_afQuotes[${i}].text=this.value" placeholder="Quote text…">${q.text||''}</textarea></div>
+      <div class="fr">
+        <div class="fg" style="margin-bottom:0"><label style="font-size:.75rem">Attribution</label>
+          <input type="text" value="${q.attr||''}" placeholder="— Dr. Chanam Lee, PI"
+            oninput="_afQuotes[${i}].attr=this.value" style="padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-family:inherit;font-size:.82rem;outline:none;width:100%"></div>
+        <div class="fg" style="margin-bottom:0"><label style="font-size:.75rem">Source / Context</label>
+          <input type="text" value="${q.source||''}" placeholder="Texas Trees Foundation, 2021"
+            oninput="_afQuotes[${i}].source=this.value" style="padding:6px 10px;border:1px solid var(--border);border-radius:7px;font-family:inherit;font-size:.82rem;outline:none;width:100%"></div>
+      </div>
+    </div>`).join('');
+}
+function addAfQuote(){
+  _afQuotes.push({text:'',attr:'',source:''});
+  renderAfQuoteList();
+}
+
+/* Quote carousel display */
+let _quoteIdx=0;
+function renderQuoteCarousel(quotes){
+  const text=document.getElementById('aboutQuoteText');
+  const attr=document.getElementById('aboutQuoteAttr');
+  const src=document.getElementById('aboutQuoteSource');
+  const dots=document.getElementById('aboutQuoteDots');
+  const nav=document.getElementById('aboutQuoteNav');
+  if(!text||!quotes.length) return;
+  const q=quotes[_quoteIdx]||quotes[0];
+  if(text) text.textContent='"'+q.text+'"';
+  if(attr) attr.textContent=q.attr||'';
+  if(src)  src.textContent=q.source||'';
+  if(dots) dots.innerHTML=quotes.map((_,i)=>
+    `<div style="width:${i===_quoteIdx?18:6}px;height:6px;border-radius:3px;background:${i===_quoteIdx?'var(--gold)':'var(--border)'};transition:all .3s;cursor:pointer" onclick="_quoteIdx=${i};renderQuoteCarousel(${JSON.stringify(quotes).replace(/"/g,"'")})"></div>`
+  ).join('');
+  if(nav) nav.style.display=quotes.length>1?'flex':'none';
+}
+function quoteStep(dir){
+  const quotes=(D&&D.about&&D.about.quotes)||[];
+  if(!quotes.length) return;
+  _quoteIdx=(_quoteIdx+dir+quotes.length)%quotes.length;
+  renderQuoteCarousel(quotes);
+}
+
 let _afPillars=[];
 function renderAfPillarList(){
   const el=document.getElementById('afPillarList'); if(!el) return;
@@ -2292,8 +2349,8 @@ function openAboutEdit(){
   document.getElementById('afKeywords').value=(a.keywords||[]).join(', ');
   document.getElementById('afDesc').value=a.description||'';
   document.getElementById('afMission').value=a.mission||'';
-  document.getElementById('afQuote').value=a.quote||'';
-  document.getElementById('afQuoteAttr').value=a.quoteAttr||'';
+  _afQuotes=JSON.parse(JSON.stringify(a.quotes||[]));
+  renderAfQuoteList();
   document.getElementById('afContact').value=a.contact||'';
   document.getElementById('afLinkedin').value=a.linkedin||'';
   renderAfPhotoList();
@@ -2307,8 +2364,7 @@ async function saveAbout(){
     keywords:    document.getElementById('afKeywords').value.trim().split(',').map(s=>s.trim()).filter(Boolean),
     description: document.getElementById('afDesc').value.trim(),
     mission:     document.getElementById('afMission').value.trim(),
-    quote:       document.getElementById('afQuote').value.trim()||null,
-    quoteAttr:   document.getElementById('afQuoteAttr').value.trim()||null,
+    quotes:      _afQuotes.filter(q=>q.text&&q.text.trim()),
     pillars:     _afPillars.filter(p=>p.title||p.text),
     contact:     document.getElementById('afContact').value.trim(),
     linkedin:    document.getElementById('afLinkedin').value.trim()||null,
