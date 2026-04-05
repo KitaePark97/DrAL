@@ -2036,7 +2036,7 @@ const FIRESTORE_MAX_BASE64 = 400000; // ~300KB image — safe limit per base64 s
 function stripLargeBase64(obj, _depth=0) {
   if(_depth > 8) return obj;
   if(typeof obj === 'string') {
-    if(obj.startsWith('data:image/') && obj.length > FIRESTORE_MAX_BASE64) {
+    if(obj.startsWith('data:')) {
       return null; // will be filtered from arrays
     }
     return obj;
