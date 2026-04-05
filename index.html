@@ -1992,6 +1992,7 @@ async function loadFromFirebase() {
       if(projectsSnap && projectsSnap.exists && (projectsSnap.data().projects||[]).length > 0)
         D.projects = projectsSnap.data().projects;
       else D.projects = D.projects || [];
+      console.log('[loadFromFirebase] projects loaded:', D.projects.length, 'projectsSnap exists:', projectsSnap&&projectsSnap.exists, 'projectsSnap data keys:', projectsSnap&&projectsSnap.exists?Object.keys(projectsSnap.data()):[]);
       // Migrate: rename "Deadline" type label to "Recruiting"
       if(D.calEventTypes) {
         let migrated=false;
@@ -2932,6 +2933,8 @@ function initPeriodFilters(){
 
 function rProjects(){
   if(!D) return;
+  // DEBUG: log projects array to console
+  console.log('[rProjects] D.projects count:', (D.projects||[]).length, 'sample:', JSON.stringify((D.projects||[])[0]||null).slice(0,200));
   initTagFilters();
   initPeriodFilters();
   const q=document.getElementById('ps').value.toLowerCase();
