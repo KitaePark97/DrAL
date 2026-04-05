@@ -5896,7 +5896,7 @@ function clearChangelog(){
 let _csvImportType = null;
 let _csvImportRows = [];
 
-const CSV_MEMBER_FIELDS = ['id','name','role','subRole','dept','email','status','advisor','orcid','bio','interests','education','currentAffiliation','photoUrl','scholar','tamu','webpage','order'];
+const CSV_MEMBER_FIELDS = ['id','name','role','subRole','dept','email','status','advisor','orcid','bio','interests','education','currentAffiliation','scholar','tamu','webpage','order'];
 const CSV_PROJECT_FIELDS = ['id','abbr','title','desc','pi','funding','tags','status','startYear','endYear','driveUrl','recruiting','partners'];
 
 function exportCSV(type){
@@ -6009,7 +6009,7 @@ async function confirmCSVImport(){
       arr.push(row); added++;
     } else {
       const idx = arr.findIndex(x=>x.id===row.id);
-      if(idx>=0){ arr[idx]={...arr[idx],...row}; updated++; }
+      if(idx>=0){ const existing=arr[idx]; const merged={...existing,...row}; if(existing.photoUrl) merged.photoUrl=existing.photoUrl; if(existing.photos) merged.photos=existing.photos; arr[idx]=merged; updated++; }
       else { arr.push(row); added++; }
     }
   });
