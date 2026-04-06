@@ -4271,6 +4271,7 @@ async function deleteEventDirect(id){
 }
 
 
+function gotoRecDeadline(recId){
   // Navigate to Recruiting page and highlight the position
   const btn=document.querySelector('.nbtn[onclick*="recruiting"]');
   goto('recruiting',btn);
@@ -4459,6 +4460,8 @@ async function deleteEventFromForm(){
   rCalendar();
   logChange('Event deleted', id);
 }
+
+async function saveEvent(){
   const title=document.getElementById('evTitle').value.trim();
   const date=document.getElementById('evDate').value;
   if(!title||!date){alert('Title and Date are required.');return}
