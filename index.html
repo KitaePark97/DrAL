@@ -28,6 +28,10 @@
   /* ── Typography variables ── */
   --tp-heading-font:'Cormorant Garamond',serif;
   --tp-body-font:'DM Sans',sans-serif;
+  --tp-section-head-size:1.4rem;
+  --tp-section-head-color:#2d4a3e;
+  --tp-section-head-weight:600;
+  --tp-nav-brand-size:1.45rem;
   --tp-page-title-size:2.1rem;
   --tp-page-title-color:#2d4a3e;
   --tp-page-title-weight:600;
@@ -78,7 +82,7 @@ nav{
   display:flex;align-items:center;justify-content:space-between;
   padding:0 48px;box-shadow:0 2px 20px rgba(0,0,0,.22);
 }
-.nav-brand{font-family:'Cormorant Garamond',serif;font-size:1.45rem;font-weight:600;color:#fff;letter-spacing:.02em;white-space:nowrap;flex-shrink:0}
+.nav-brand{font-family:var(--tp-heading-font);font-size:var(--tp-nav-brand-size);font-weight:600;color:#fff;letter-spacing:.02em;white-space:nowrap;flex-shrink:0}
 .nav-brand span{color:#a5d4c4}
 .nav-center{display:flex;gap:4px}
 .nbtn{background:none;border:none;color:rgba(255,255,255,.7);font-size:.85rem;padding:8px 17px;border-radius:6px;transition:all .2s}
@@ -199,7 +203,7 @@ nav{
 .rc:hover{box-shadow:0 8px 28px rgba(0,0,0,.09)}
 .rc.urg{border-left-color:var(--red)}
 .rc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px}
-.rc-title{font-family:'Cormorant Garamond',serif;font-size:1.18rem;font-weight:600}
+.rc-title{font-family:var(--tp-heading-font);font-size:var(--tp-section-head-size);font-weight:var(--tp-section-head-weight)}
 .rc-proj{font-size:.78rem;color:var(--muted);margin-top:3px}
 .rc-badges{display:flex;flex-wrap:wrap;gap:5px;flex-shrink:0}
 .rbg{padding:3px 12px;border-radius:10px;font-size:.7rem;font-weight:500}
@@ -269,7 +273,8 @@ nav{
 .ev-seminar{background:#fef3c7;color:#92400e}
 .ev-event{background:#dbeafe;color:#1e40af}
 .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
-.cal-nav h3{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:600;color:var(--green)}
+.cal-nav h3{font-family:var(--tp-heading-font);font-size:var(--tp-section-head-size);font-weight:var(--tp-section-head-weight);color:var(--tp-section-head-color)}
+.cal-section-head{font-family:var(--tp-heading-font);font-size:var(--tp-section-head-size);font-weight:var(--tp-section-head-weight);color:var(--tp-section-head-color)}
 .cal-nav-btn{background:none;border:1.5px solid var(--border);width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;transition:all .2s}
 .cal-nav-btn:hover{border-color:var(--green);color:var(--green)}
 .cal-legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
@@ -939,12 +944,12 @@ const FIREBASE_CONFIG = {
   </div>
   <div class="cal-grid" id="calGrid"></div>
   <div style="margin-top:32px">
-    <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--green);margin-bottom:16px">Upcoming Events</h3>
+    <h3 class="cal-section-head" style="margin-bottom:16px">Upcoming Events</h3>
     <div id="calUpcoming" style="display:flex;flex-direction:column;gap:10px"></div>
   </div>
   <div style="margin-top:36px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
-      <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--muted);margin:0">Past Events</h3>
+      <h3 class="cal-section-head" style="margin:0">Past Events</h3>
       <button id="pastEvToggleBtn" onclick="togglePastEvents()" style="background:none;border:1.5px solid var(--border);padding:6px 14px;border-radius:8px;font-size:.8rem;cursor:pointer;color:var(--muted)">Show ▾</button>
     </div>
     <div id="calPast" style="display:none;flex-direction:column;gap:10px"></div>
@@ -1241,13 +1246,19 @@ const FIREBASE_CONFIG = {
   <div class="modal" style="max-width:580px;max-height:88vh;overflow-y:auto">
     <button class="modal-x" onclick="closeModal('typoModal')">×</button>
     <h3>Aa Typography</h3>
-    <p style="font-size:.83rem;color:var(--muted);margin-bottom:18px">폰트, 크기, 색상, 굵기를 조절하세요. 변경 사항이 실시간으로 미리보기됩니다.</p>
+    <p style="font-size:.83rem;color:var(--muted);margin-bottom:18px">Customize fonts, sizes, colors, and weights. Changes preview live.</p>
+
+    <!-- Site Name (Nav Brand) -->
+    <div style="background:var(--bg);border-radius:10px;padding:14px 16px;margin-bottom:14px">
+      <div style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px">Site Name <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:.78rem">— top-left navigation brand</span></div>
+      <input type="text" id="tp-nav-brand-text" placeholder="DrAL Lab" oninput="previewNavBrand()" style="width:100%;padding:9px 13px;border:1.5px solid var(--border);border-radius:8px;font-family:var(--tp-heading-font);font-size:var(--tp-nav-brand-size);font-weight:600;outline:none;background:var(--white);color:var(--text)">
+    </div>
 
     <!-- Heading Font -->
     <div style="background:var(--bg);border-radius:10px;padding:14px 16px;margin-bottom:14px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <div style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)">Heading Font</div>
-        <div style="font-size:.72rem;color:var(--muted)">제목, Tagline, 카드 타이틀</div>
+        <div style="font-size:.72rem;color:var(--muted)">Titles, taglines, card headings</div>
       </div>
       <div id="tp-heading-font-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px"></div>
     </div>
@@ -1256,7 +1267,7 @@ const FIREBASE_CONFIG = {
     <div style="background:var(--bg);border-radius:10px;padding:14px 16px;margin-bottom:20px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <div style="font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)">Body Font</div>
-        <div style="font-size:.72rem;color:var(--muted)">본문, 버튼, UI 전반</div>
+        <div style="font-size:.72rem;color:var(--muted)">Body text, buttons, UI elements</div>
       </div>
       <div id="tp-body-font-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px"></div>
     </div>
@@ -5480,23 +5491,29 @@ function _ensureFontLoaded(fontId){
 }
 
 const TYPO_ROWS = [
-  {id:'pageTitle', label:'Page Titles',        hint:'e.g. "Lab Members", "Research Projects"',
+  {id:'pageTitle', label:'Page Titles',          hint:'e.g. "Lab Members", "Research Projects"',
    size:{var:'--tp-page-title-size',  def:'2.1', min:.8, max:4},
    color:{var:'--tp-page-title-color',def:'#2d4a3e'},
    weight:{var:'--tp-page-title-weight',def:'600'}},
-  {id:'pageSub',   label:'Page Subtitles',      hint:'description text below page titles',
+  {id:'pageSub',   label:'Page Subtitles',        hint:'description line below page titles',
    size:{var:'--tp-page-sub-size',    def:'.88', min:.6, max:1.6},
    color:{var:'--tp-page-sub-color',  def:'#6b7280'}},
-  {id:'tagline',   label:'About Tagline',       hint:'big headline on the About page',
+  {id:'tagline',   label:'About Tagline',         hint:'large headline on the About page',
    size:{var:'--tp-tagline-size',     def:'2',   min:.8, max:4},
    color:{var:'--tp-tagline-color',   def:'#2d4a3e'},
    weight:{var:'--tp-tagline-weight', def:'600'}},
-  {id:'heroHead',  label:'Hero Headline',       hint:'"Design Research for Active Living"',
+  {id:'sectionHead',label:'Section Headings',    hint:'Upcoming Events, Past Events, Open Positions titles, Calendar month',
+   size:{var:'--tp-section-head-size', def:'1.4', min:.7, max:3},
+   color:{var:'--tp-section-head-color',def:'#2d4a3e'},
+   weight:{var:'--tp-section-head-weight',def:'600'}},
+  {id:'heroHead',  label:'Hero Headline',         hint:'"Design Research for Active Living"',
    size:{var:'--tp-hero-size',        def:'3.4', min:1.2, max:5.5},
    weight:{var:'--tp-hero-weight',    def:'600'}},
-  {id:'body',      label:'Body Text',           hint:'general paragraph text',
+  {id:'navBrand',  label:'Site Name Size',        hint:'font size of the top-left navigation brand',
+   size:{var:'--tp-nav-brand-size',   def:'1.45', min:.7, max:2.5}},
+  {id:'body',      label:'Body Text',             hint:'general paragraph text',
    size:{var:'--tp-body-size',        def:'1',   min:.75, max:1.3}},
-  {id:'itemTitle', label:'Card & News Titles',  hint:'project cards, news headlines, recruiting titles',
+  {id:'itemTitle', label:'Card & News Titles',    hint:'project cards, news headlines, recruiting card titles',
    size:{var:'--tp-item-title-size',  def:'1.3', min:.8, max:2.4},
    weight:{var:'--tp-item-title-weight',def:'600'}},
 ];
@@ -5517,6 +5534,20 @@ function _tpApplyVars(tp){
     if(row.color) root.style.setProperty(row.color.var, saved.color ||row.color.def);
     if(row.weight)root.style.setProperty(row.weight.var,saved.weight||row.weight.def);
   });
+  // Nav brand text
+  if(tp.navBrandText) _applyNavBrandText(tp.navBrandText);
+}
+
+function _applyNavBrandText(text){
+  const el=document.getElementById('main-content'); if(!el) return;
+  if(!text||!text.trim()){ el.innerHTML='Dr<span>AL</span> Lab'; return; }
+  // Auto-highlight if text contains "AL" for the DrAL brand
+  el.textContent=text;
+}
+
+function previewNavBrand(){
+  const val=document.getElementById('tp-nav-brand-text')?.value||'';
+  _applyNavBrandText(val);
 }
 
 function initTypo(){
@@ -5577,6 +5608,9 @@ function openTypoPicker(){
   // Load current fonts
   _ensureFontLoaded(_tpSelHeading);
   _ensureFontLoaded(_tpSelBody);
+  // Nav brand text
+  const navInput=document.getElementById('tp-nav-brand-text');
+  if(navInput) navInput.value=tp.navBrandText||'';
   // Build font grids
   _buildFontGrid('tp-heading-font-grid', _tpSelHeading, 'heading');
   _buildFontGrid('tp-body-font-grid',    _tpSelBody,    'body');
@@ -5645,6 +5679,11 @@ async function saveTypo(){
   if(!D.typography) D.typography={};
   D.typography.headingFontId=_tpSelHeading;
   D.typography.bodyFontId   =_tpSelBody;
+  // Nav brand text
+  const navInput=document.getElementById('tp-nav-brand-text');
+  const navText=(navInput?.value||'').trim();
+  D.typography.navBrandText=navText||null;
+  _applyNavBrandText(navText);
   TYPO_ROWS.forEach(row=>{
     const obj={};
     const sizeEl  =document.getElementById('tp-'+row.id+'-size');
@@ -5666,6 +5705,7 @@ async function resetTypo(){
   const root=document.documentElement;
   root.style.setProperty('--tp-heading-font',"'Cormorant Garamond',serif");
   root.style.setProperty('--tp-body-font',   "'DM Sans',sans-serif");
+  _applyNavBrandText('');
   TYPO_ROWS.forEach(row=>{
     if(row.size)  root.style.setProperty(row.size.var,   row.size.def+'rem');
     if(row.color) root.style.setProperty(row.color.var,  row.color.def);
