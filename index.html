@@ -1706,13 +1706,14 @@ const FIREBASE_CONFIG = {
   </div>
 </div>
 
-<!-- Confirm delete -->
-<div class="overlay" id="confirmModal">
-  <div class="modal" style="max-width:360px;text-align:center">
-    <h3 id="confirmMsg" style="font-size:1.3rem;margin-bottom:10px"></h3>
-    <p id="confirmSub" style="font-size:.85rem;color:var(--muted);margin-bottom:24px">This action cannot be undone.</p>
-    <div class="factions" style="display:flex;gap:10px;justify-content:center">
-      <button id="confirmCancel" class="btn-cancel" onclick="closeModal('confirmModal')">Cancel</button>
+<!-- Confirm delete / Event detail -->
+<div class="overlay" id="confirmModal" onclick="if(event.target===this)closeModal('confirmModal')">
+  <div class="modal" style="max-width:400px;text-align:center;position:relative">
+    <button class="modal-x" onclick="closeModal('confirmModal')" style="position:absolute;top:12px;right:12px">×</button>
+    <h3 id="confirmMsg" style="font-size:1.3rem;margin-bottom:10px;padding-right:24px"></h3>
+    <p id="confirmSub" style="font-size:.85rem;color:var(--muted);margin-bottom:24px;text-align:left">This action cannot be undone.</p>
+    <div class="factions" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button id="confirmCancel" class="btn-cancel" onclick="closeModal('confirmModal')">Close</button>
       <button class="btn-danger" id="confirmOk">Delete</button>
     </div>
   </div>
@@ -3760,7 +3761,19 @@ async function saveNews(){
 function confirmDelete(type,id){
   const labels={member:'member',project:'project',rec:'posting',news:'news item',event:'event',pub:'publication',res:'resource'};
   document.getElementById('confirmMsg').textContent=`Delete this ${labels[type]}?`;
-  document.getElementById('confirmOk').onclick=async()=>{
+  document.getElementById('confirmSub').textContent='This action cannot be undone.';
+  const okBtn=document.getElementById('confirmOk');
+  const cancelBtn=document.getElementById('confirmCancel');
+  okBtn.style.display='inline-block';
+  okBtn.textContent='Delete';
+  cancelBtn.style.display='inline-block';
+  cancelBtn.textContent='Cancel';
+  // Hide any leftover event-detail buttons
+  const editBtn=document.getElementById('calDetailEditBtn');
+  const delBtn=document.getElementById('calDetailDelBtn');
+  if(editBtn) editBtn.style.display='none';
+  if(delBtn)  delBtn.style.display='none';
+  okBtn.onclick=async()=>{
     if(type==='member'){
       D.members=D.members.filter(m=>m.id!==id);
       D.projects.forEach(p=>{p.memberIds=(p.memberIds||[]).filter(mid=>mid!==id)});
@@ -4252,8 +4265,8 @@ function searchGoogleMaps(){
 function openEventDetail(evEncoded){
   let ev;
   try{ ev=JSON.parse(decodeURIComponent(evEncoded)); }catch(e){ return; }
-  // Admin + non-auto events: open editor directly
-  if(isAdmin&&!ev.autoGen&&ev.id&&!ev.recId){
+  // Admin + pure calendar events (no newsId, no recId, not autoGen): open editor directly
+  if(isAdmin&&!ev.autoGen&&ev.id&&!ev.recId&&!ev.newsId){
     openEventForm(ev.id); return;
   }
   const typeObj=getEvType(ev.type);
@@ -4269,20 +4282,20 @@ function openEventDetail(evEncoded){
      ${locHtml}
      ${ev.desc?'<p style="margin-top:10px;font-size:.85rem;text-align:left;color:var(--text);white-space:pre-line">'+ev.desc+'</p>':''}
      ${ev.link?'<br><a href="'+ev.link+'" target="_blank" style="color:#2563eb">🔗 More info</a>':''}`;
-  // Buttons for event detail modal
+  // Always show Close button, hide the old Delete/Ok button
   const okBtn    = document.getElementById('confirmOk');
   const cancelBtn= document.getElementById('confirmCancel');
   okBtn.style.display='none';
-  cancelBtn.style.display='none';
+  cancelBtn.style.display='inline-block';
+  cancelBtn.textContent='Close';
   // Admin: show edit/delete buttons for all event types
   if(isAdmin){
-    // Edit button — for news-sourced events, jump to news editor
     let editBtn = document.getElementById('calDetailEditBtn');
     if(!editBtn){
       editBtn=document.createElement('button');
       editBtn.id='calDetailEditBtn';
       editBtn.className='btn-save';
-      editBtn.style.cssText='margin-top:12px;margin-right:8px';
+      editBtn.style.cssText='margin-right:8px';
       document.getElementById('confirmModal').querySelector('.factions').prepend(editBtn);
     }
     let delBtn = document.getElementById('calDetailDelBtn');
@@ -4290,12 +4303,16 @@ function openEventDetail(evEncoded){
       delBtn=document.createElement('button');
       delBtn.id='calDetailDelBtn';
       delBtn.className='btn-danger';
-      delBtn.style.cssText='margin-top:12px';
       document.getElementById('confirmModal').querySelector('.factions').prepend(delBtn);
     }
     editBtn.style.display='inline-block';
     delBtn.style.display='inline-block';
-    if(ev.newsId){
+
+    // Check if newsId refers to an existing news record
+    const newsRecord = ev.newsId ? D.news.find(n=>n.id===ev.newsId) : null;
+
+    if(ev.newsId && newsRecord){
+      // News event with existing news record
       editBtn.textContent='✏️ Edit News';
       editBtn.onclick=()=>{ closeModal('confirmModal'); openNewsForm(ev.newsId); };
       delBtn.textContent='🗑 Delete';
@@ -4305,6 +4322,16 @@ function openEventDetail(evEncoded){
         D.events=(D.events||[]).filter(e=>e.id!==ev.id);
         await saveToFirebase();
         closeModal('confirmModal'); rNews(); rCalendar();
+      };
+    } else if(ev.newsId && !newsRecord){
+      // Orphaned event — original news was deleted, only calendar entry remains
+      editBtn.style.display='none';
+      delBtn.textContent='🗑 Remove from Calendar';
+      delBtn.onclick=async()=>{
+        if(!confirm('Remove this orphaned calendar event? (The original news post no longer exists.)')) return;
+        D.events=(D.events||[]).filter(e=>e.id!==ev.id);
+        await saveToFirebase();
+        closeModal('confirmModal'); rCalendar();
       };
     } else if(ev.recId){
       editBtn.textContent='✏️ Edit Recruiting';
@@ -4316,7 +4343,8 @@ function openEventDetail(evEncoded){
         if(r){ r.deadline=null; await saveToFirebase(); }
         closeModal('confirmModal'); rCalendar();
       };
-    } else if(!ev.autoGen){
+    } else if(ev.autoGen){
+      // autoGen event with no newsId/recId — allow direct edit/delete anyway
       editBtn.textContent='✏️ Edit';
       editBtn.onclick=()=>{ closeModal('confirmModal'); openEventForm(ev.id); };
       delBtn.textContent='🗑 Delete';
@@ -4327,8 +4355,16 @@ function openEventDetail(evEncoded){
         closeModal('confirmModal'); rCalendar();
       };
     } else {
-      editBtn.style.display='none';
-      delBtn.style.display='none';
+      // Regular event
+      editBtn.textContent='✏️ Edit';
+      editBtn.onclick=()=>{ closeModal('confirmModal'); openEventForm(ev.id); };
+      delBtn.textContent='🗑 Delete';
+      delBtn.onclick=async()=>{
+        if(!confirm('Delete this event?')) return;
+        D.events=(D.events||[]).filter(e=>e.id!==ev.id&&e.parentId!==ev.id);
+        await saveToFirebase();
+        closeModal('confirmModal'); rCalendar();
+      };
     }
   } else {
     const editBtn=document.getElementById('calDetailEditBtn');
